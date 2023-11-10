@@ -3,13 +3,12 @@ Presentation Slot
 Length:  14-16 mins (4 members)
 
 Time slot: 
-Tuesday, Nov 17 12-2 pm (session 2 preferred)
-Thursday, Nov 19 12-2 pm (session 1 preferred)
-Saturday, Nov 21 12-2 pm (final's time slot)
+Thursday, Nov 19 12-2 pm (session 1 preferred)* 
 
 Title of your Project: US Border X-ing
 
 Abstract (couple of sentences: what is your data, what do you want to do. What have you found - only if you already did):
+We are exploring data of border crossings into the United States from the years 1996 to 2023. We are thinking of looking at the aggregate data, investigating the Canadian and Mexico borders separately, and then comparing the two borders. The Mexican border is very interesting, as it is far less cyclical than Canada. Additionally, we have been able to see September 11th and COVID effects in our data. 
 
 Name of team members (in the order of your presentation, if you already have figured that out):
 Min-Yi Chen, Liam Hemingway, Rebekah Scott, Zihao Yang
