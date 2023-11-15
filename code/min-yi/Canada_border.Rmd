@@ -1,0 +1,176 @@
+---
+title: "Canada_Border"
+author: "Min-Yi Chen"
+date: "2023-11-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+load("~/Documents/ISU/23Fall/STAT579/final project/data/border_clean.Rdata")
+library(tidyverse)
+library(plotly)
+library(gridExtra)
+#ggplotly()
+#read data
+Canada_border <- border %>%
+  filter(Border == "US-Canada Border")%>%
+  mutate(
+    Year = factor(Year,levels = c(1996,1997,1998,1999,2000,2001,2002,
+                                  2003,2004,2005,2006,2007,2008,2009,2010,2011,
+                                  2012,2013,2014,2015,2016,2017,2018,2019,2020,
+                                  2021,2022,2023))
+  )
+```
+
+#port code
+How many port have complete set
+How many port should we consider ?
+Does Port_name change ? There's 118 levels but I only have 90 rows.
+Only 89 when I group_by Port_name
+
+#Eastport
+```{r}
+Canada_border %>%
+  filter(Port_name == 'Eastport')%>%
+  group_by(Port_code)%>%
+  summarise(
+    n = n()
+  )
+```
+# Eastport has two Port_code
+```{r}
+Canada_border %>%
+  filter(Port_name == 'Eastport')%>%
+  group_by(Port_code)%>%
+  ggplot(aes(x = Year,y = Value,colour = Port_code))+geom_point()
+```
+
+# State
+```{r}
+Canada_border %>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State)
+
+Canada_border %>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State,scales = 'free_y')
+
+```
+
+#Measure
+```{r}
+Canada_border %>%
+  group_by(Measure) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~Measure)
+
+Canada_border %>%
+  group_by(Measure) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~Measure,scales = 'free_y')
+
+```
+
+We can see some seasonal patterns in measure
+
+# How about group_by State with specific measure ?
+
+#Bus
+```{r}
+Canada_border %>%
+  filter(Measure == 'Buses')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State)
+
+Canada_border %>%
+  filter(Measure == 'Buses')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State,scales = 'free_y')
+
+```
+
+#Personal Vehicles
+```{r}
+Canada_border %>%
+  filter(Measure == 'Personal Vehicles')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State)
+
+Canada_border %>%
+  filter(Measure == 'Personal Vehicles')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State,scales = 'free_y')
+
+```
+
+#Personal Vehicle Passengers
+```{r}
+Canada_border %>%
+  filter(Measure == 'Personal Vehicle Passengers')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State)
+
+Canada_border %>%
+  filter(Measure == 'Personal Vehicle Passengers')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State,scales = 'free_y')
+```
+
+I think Personal Vehicles is a factor.
+
+```{r}
+Among_State <- Canada_border %>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State,scales = 'free_y')
+Bus_Among_State <- Canada_border %>%
+  filter(Measure == 'Buses')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State,scales = 'free_y')
+
+Personal_Vehicles_Among_State <- Canada_border %>%
+  filter(Measure == 'Personal Vehicles')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State,scales = 'free_y')
+
+Personal_Vehicles_Passengers_Among_State <- Canada_border %>%
+  filter(Measure == 'Personal Vehicle Passengers')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State,scales = 'free_y')
+
+grid.arrange(Among_State, Bus_Among_State, nrow = 2)
+```
+```{r}
+grid.arrange(Among_State, Personal_Vehicles_Among_State, nrow = 2)
+```
+
+```{r}
+grid.arrange(Among_State, Personal_Vehicles_Passengers_Among_State, nrow = 2)
+```
+
+#Consider average in each month
+```{r}
+Canada_border %>%
+  group_by(Year,Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  ) %>%
+  ggplot(aes(x = factor(Month), y=average_value,group = Year,colour = Year))+geom_line()
+
+```
+
+```{r}
+Canada_border %>%
+  group_by(Year,Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  ) %>%
+  ggplot(aes(x = factor(Month), y=average_value,colour = Year))+geom_line(aes(group = Year)) +facet_wrap(~Year)+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+
+
