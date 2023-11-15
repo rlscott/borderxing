@@ -10,7 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-load("~/Documents/ISU/23Fall/STAT579/final project/data/border_clean.Rdata")
+# load("~/Documents/ISU/23Fall/STAT579/final project/data/border_clean.Rdata")
+load("C:/Users/rebek/github/packages/borderxing/data/border_clean.Rdata")
 library(tidyverse)
 library(plotly)
 library(gridExtra)
@@ -49,6 +50,12 @@ Canada_border %>%
   ggplot(aes(x = Year,y = Value,colour = Port_code))+geom_point()
 ```
 
+```{r}
+Canada_border %>%
+  filter(Port_name == 'Eastport')%>%
+  group_by(Port_code)%>%
+  ggplot(aes(x = Year,y = Value,colour = Port_code))+geom_boxplot()
+```
 # State
 ```{r}
 Canada_border %>%
@@ -83,7 +90,7 @@ Canada_border %>%
   filter(Measure == 'Buses')%>%
   group_by(State) %>%
   ggplot(aes(x = Date, y=Value))+geom_line()+facet_wrap(~State)
-
+#montana Bus
 Canada_border %>%
   filter(Measure == 'Buses')%>%
   group_by(State) %>%
