@@ -1,0 +1,21 @@
+Outline of planned data exploration (by group member): 
+
+Zihao Yang
+1. Compare the seasonal part of Mexico and Canada border and compare them with each other (just select the normal time).
+2. Compare the impact of big event(911, covid) on the value of Mexico and Canada.
+3. Compare the 3 largest ports (El Paso, Buffalo, and Detroit -- these 3 ports are selected by the top10 value in Canada and Mexico). I want to compare the transport proportion and trend of them. 
+4. Compare the period time that port closed.
+
+Rebekah Scott
+1. Compute summary statistics for the ports (how many on each border, by state, etc) 
+2. See if I can make a cool map (maybe using density of some measure or something... )
+3. Work with the multinomial distributions of the different measures by port. Compute the average and median distribution of measures for all ports and do a goodness of fit test on each port of entry to see if it significantly differs from the median (just using p-values). Maybe I'll split things up further into the average of the Canadian and Mexican borders... 
+
+Liam Hemingway (all in the context of Mexico)
+1. Look at the effect of historical events.
+2. Investigate which ports and which types of crossings were more or less resistant to these historical events.
+3. Determine causes of anomalies in certain transportation types i.e., the random spikes in the graphs.
+
+Min-Yi Chen (all in the context of Canada)
+1. Analyze the trend beyond decades.
+2. Investigate Montana with the measure bus to see the dramatic change.
