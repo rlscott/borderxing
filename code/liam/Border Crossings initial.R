@@ -4,17 +4,18 @@ library(leaflet)
 library(plotly)
 
 # border <- read.csv("https://data.bts.gov/api/views/keg4-3bc2/rows.csv?accessType=DOWNLOAD",stringsAsFactors = T)
-border <- read.csv("~/Border_Crossing_Entry_Data.csv", stringsAsFactors=TRUE)
+# border <- read.csv("~/Border_Crossing_Entry_Data.csv", stringsAsFactors=TRUE)
+load("data/border_clean.Rdata")
 
 # Filtering out garbage
 look<-border %>% 
   mutate(date=lubridate::my(Date),
          month=month(date),
          year=year(date)) %>% 
-  group_by(Port.Code,Port.Name,month,year,Border) %>% 
+  group_by(Port_code,Port_name,month,year,Border) %>% 
   summarize(Value=sum(Value)) %>% 
   filter(Value==0)
-summary(look$Port.Name)
+summary(look$Port_name)
 
 look<-look %>% mutate(numtime=year+(month-1)/12)
 
@@ -24,20 +25,21 @@ look %>%
   filter(year==1996) %>% View()
 
 # Each Port averaged over time
-border %>% 
+ggplotly(border %>% 
+  filter(Type=="People") %>% 
   mutate(date=lubridate::my(Date),
        month=month(date),
        year=year(date)) %>% 
-  group_by(Port.Code,Port.Name,month,year,Border) %>% 
+  group_by(Port_code,Port_name,month,year,Border) %>% 
   summarize(Value=sum(Value)) %>% 
-  ggplot(aes(x=year + (month-1)/12,y=Value))+
-  geom_line(aes(group=Port.Name))+
+  ggplot(aes(x=year + (month-1)/12,y=Value,color=Port_name))+
+  geom_line()+
   geom_vline(xintercept=2001+(9-1)/12,color='red')+
   facet_wrap(~Border)+
-  theme(legend.position = "none")
+  theme(legend.position = "none"))
 
 # Map of station locations
-stations<-unique(border %>% select(Port.Code,Port.Name,Longitude,Latitude))
+stations<-unique(border %>% select(Port_code,Port_name,Longitude,Latitude))
 
 leaflet(stations) %>% 
   addTiles() %>% 
@@ -48,13 +50,15 @@ border %>%
   mutate(date=lubridate::my(Date),
          month=month(date),
          year=year(date)) %>% 
-  group_by(Port.Code,Port.Name,month,year) %>% 
+  group_by(Port_code,Port_name,month,year) %>% 
   summarize(Value=sum(Value)) %>% 
-  filter(Port.Name=="San Ysidro") %>% 
-  ggplot(aes(x=year + (month-1)/12,y=Value))+geom_line()
+  filter(Port_name=="San Ysidro") %>% 
+  ggplot(aes(x=year + (month-1)/12,y=Value))+geom_line()+
+  geom_vline(xintercept=2001+(9-1)/12,color='red') # sep 11
 
 # Avg over time
 border %>% 
+  filter(Type=="People") %>% 
   mutate(date=lubridate::my(Date),
          month=month(date),
          year=year(date)) %>% 
@@ -62,7 +66,7 @@ border %>%
   summarize(Value=sum(Value)) %>% 
   ggplot(aes(x=year + (month-1)/12,y=Value))+
   geom_line()+
-  geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
+  # geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
   geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
   geom_vline(xintercept=2011+(11-1)/12,color='red')+ # Guatemala President
   geom_vline(xintercept=2017+(1-1)/12,color='red')+ # Trump
@@ -70,18 +74,41 @@ border %>%
   facet_wrap(~Border)+
   theme(legend.position = "none")
 
-# Port Sasabe over time
-p<-border %>% 
+# Port By state and explaining 9/11 with 3 ports
+border %>% 
+  filter(Type=="People") %>% 
   mutate(date=lubridate::my(Date),
          month=month(date),
          year=year(date)) %>% 
-  group_by(Port.Code,Port.Name,month,year,Border) %>% 
+  group_by(Port_code,Port_name,month,year,Border) %>% 
   summarize(Value=sum(Value)) %>% 
-  filter(Port.Name=="Sasabe") %>% 
-  ggplot(aes(x=year + (month-1)/12,y=Value,color=Port.Name))+
-  geom_point()+
+  filter(Port_name=="Calexico") %>% 
+  ggplot(aes(x=year + (month-1)/12,y=Value,color=Port_name))+
+  geom_line()+
   theme(legend.position = "none")
-ggplotly(p)
+
+border %>% 
+  filter(Type=="People",Border=="US-Mexico Border",
+         Port_name!="San Ysidro",Port_name!="El Paso",Port_name!="Calexico") %>% 
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>% 
+  group_by(month,year,Border,State) %>% 
+  summarize(Value=sum(Value)) %>% 
+  ggplot(aes(x=year + (month-1)/12,y=Value))+
+  geom_line()+
+  # geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
+  # geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
+  # geom_vline(xintercept=2011+(11-1)/12,color='red')+ # Guatemala President
+  # geom_vline(xintercept=2017+(1-1)/12,color='red')+ # Trump
+  # geom_vline(xintercept=2020+(3-1)/12,color='red')+ # Covid
+  facet_wrap(~State)+
+  theme(legend.position = "none")
+
+border %>% filter(Border == "US-Mexico Border") %>% 
+  ggplot(aes(x = reorder(Port_name, as.numeric(Measure), na.rm = TRUE), fill = Measure)) + 
+  geom_bar(position = "fill") + coord_flip() + xlab("Port Name") + 
+  ylab("Count Precentage by Measure")
 
 # Avg of each measure in mexico over time
 border %>% 
@@ -97,7 +124,7 @@ border %>%
   facet_wrap(~Measure,scales="free_y")+
   theme(legend.position = "none")
 
-Trainp<-border %>% 
+Trainp<-border %>% # Nogales???
   mutate(date=lubridate::my(Date),
          month=month(date),
          year=year(date)) %>% 
@@ -113,3 +140,16 @@ sum(border$Value[border$Measure=='Trucks'])
 
 border %>% filter(Measure=='Train Passengers',Border=='US-Mexico Border')
 
+# length value correlation
+stateeffect<-border %>% filter(Border == "US-Mexico Border",Port_name!="San Ysidro",
+                               Port_name!="El Paso",Port_name!="Calexico") %>% 
+  group_by(State) %>% summarize(Value=sum(Value)) %>% ungroup()
+bordlength<-c(372.5,140.4,179.5,1241.0)
+reg<-stateeffect %>% mutate(long=bordlength)
+reg %>% 
+  ggplot(aes(x=long,y=Value))+geom_point()+geom_smooth(method = 'lm',se=F)
+lin<-lm(Value~long,data=reg)
+adjlin<-lm(Value~long,data=filter(reg,State!='California'))
+summary(lin)
+summary(adjlin)
+cooks.distance(lin)
