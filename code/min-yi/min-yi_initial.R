@@ -147,3 +147,34 @@ Group_1 <- Canada_border %>%
   filter(Year=='1996'|Year=='1997'|Year=='1998'|Year=='1999'|Year=='2000'|Year=='2001'|Year=='2002')
 
 levels(Canada_border$Month)
+
+Canada_border %>%
+  filter(Year == '2000' & State == 'Montana' & Month == 'Nov')%>%
+  group_by(Measure) %>%
+  summarise(
+    n = sum(Value)
+  )%>% View()
+
+Canada_border %>%
+  filter(Year == '2000' & State == 'Montana' & Month == 'Oct')%>%
+  group_by(Measure) %>%
+  summarise(
+    n = sum(Value)
+  )%>% View()
+
+Canada_border %>%
+  filter(Year == '2000' & State == 'Montana' & Month == 'Dec')%>%
+  group_by(Measure) %>%
+  summarise(
+    n = sum(Value)
+  )%>% View()
+
+Canada_border %>%
+  filter(Year == '2000' & State == 'Montana' )%>%
+  group_by(Month) %>%
+  summarise(
+    n = sum(Value)
+  )%>% View()
+
+#Overall doesn't change
+
