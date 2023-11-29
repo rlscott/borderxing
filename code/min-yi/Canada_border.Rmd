@@ -10,8 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-# load("~/Documents/ISU/23Fall/STAT579/final project/data/border_clean.Rdata")
-load("C:/Users/rebek/github/packages/borderxing/data/border_clean.Rdata")
+load("~/Documents/ISU/23Fall/STAT579/final project/data/border_clean.Rdata")
+#load("C:/Users/rebek/github/packages/borderxing/data/border_clean.Rdata")
 library(tidyverse)
 library(plotly)
 library(gridExtra)
@@ -177,6 +177,60 @@ Canada_border %>%
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
+```
+
+#Montana
+```{r}
+Canada_border %>%
+  filter(Measure == 'Buses' & State == 'Montana')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()
+```
+
+#Nov 2000, value 124
+# I think it is because the election (Nov 7, 2000)
+#I found that the date is not sorted, I think we should work on it to analyze the plot.
+
+#7 years to a group
+```{r}
+Group_1 <- Canada_border %>%
+  filter(Year=='1996'|Year=='1997'|Year=='1998'|Year=='1999'|Year=='2000'|Year=='2001'|Year=='2002') %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_2 <- Canada_border %>%
+  filter(Year=='2003'|Year=='2004'|Year=='2005'|Year=='2006'|Year=='2007'|Year=='2008'|Year=='2009') %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_3 <- Canada_border %>%
+  filter(Year=='2010'|Year=='2011'|Year=='2012'|Year=='2013'|Year=='2014'|Year=='2015'|Year=='2016') %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_4 <- Canada_border %>%
+  filter(Year=='2017'|Year=='2018'|Year=='2019'|Year=='2020'|Year=='2021'|Year=='2022'|Year=='2023') %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+```
+```{r}
+
+ggplot() + 
+  geom_line(data = Group_1,aes(x = Month, y=average_value,group = 1,colour = '1996-2002')) + 
+  geom_line(data = Group_2,aes(x = Month, y=average_value,group = 1,colour = '2003-2009')) + 
+  geom_line(data = Group_3,aes(x = Month, y=average_value,group = 1,colour = '2010-2016')) +
+  geom_line(data = Group_4,aes(x = Month, y=average_value,group = 1,colour = '2017-2023' )) +
+  scale_color_manual(name = "Year Group", values = c("1996-2002" = "steelblue", "2003-2009" = "coral2","2010-2016" = "green", "2017-2023" = "orange")) 
+
 ```
 
 

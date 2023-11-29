@@ -4,7 +4,7 @@ unique(border$Border)
 #library
 library(tidyverse)
 library(plotly)
-#ggplotly()
+ggplotly()
 #read data
 Canada_border <- border %>%
   filter(Border == "US-Canada Border")%>%
@@ -137,7 +137,13 @@ Canada_border %>%
   ggplot(aes(x = Month, y=Value))+geom_point()+
   facet_wrap(~Year,scales = 'free_y')
 
+ggplotly()
+Canada_border %>%
+  filter(Measure == 'Buses' & State == 'Montana')%>%
+  group_by(State) %>%
+  ggplot(aes(x = Date, y=Value))+geom_line()
 
+Group_1 <- Canada_border %>%
+  filter(Year=='1996'|Year=='1997'|Year=='1998'|Year=='1999'|Year=='2000'|Year=='2001'|Year=='2002')
 
-
-
+levels(Canada_border$Month)
