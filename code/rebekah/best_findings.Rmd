@@ -39,7 +39,7 @@ There are 117 ports of entry, with 89 of them on the US-Canada Border and the re
 ```{r}
 border %>% select(Year) %>% unique() %>% count()
 
-border %>% select(Year) %>% min()
+border %>% select(Date) %>% min()
 
 ```
 
