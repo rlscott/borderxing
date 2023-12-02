@@ -16,3 +16,6 @@ https://data.bts.gov/Research-and-Statistics/Border-Crossing-Entry-Data/keg4-3bc
 
 Name of team members (in the order of your presentation, if you already have figured that out):
 Min-Yi Chen, Liam Hemingway, Rebekah Scott, Zihao Yang
+
+
+https://bookdown.org/yihui/rmarkdown/xaringan.html

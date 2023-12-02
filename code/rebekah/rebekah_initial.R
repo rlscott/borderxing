@@ -14,8 +14,9 @@ stations <- unique(border %>% select(Port_code, Port_name, Longitude, Latitude) 
 
 library(leaflet)
 
-png("code/rebekah/help.png")
+# png("code/rebekah/help.png")
 leaflet(stations) %>%
   addTiles() %>%
   addCircleMarkers(~Longitude, ~Latitude, popup=~Port_name, radius=3)
 dev.off()
+# 

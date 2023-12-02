@@ -3,7 +3,204 @@
 library(tidyverse)
 load("data/border_clean.Rdata")
 
-# revamped multinomail stuff --------------
+# stream lined multinomimal stuff -----
+
+
+do_chi_sq <- function(df){
+  median_distn <-  df %>% 
+    mutate(med_measures = mean(Value), .by = Measure) %>% 
+    select(Measure, med_measures) %>% unique() %>% 
+    mutate(tot_med_measures = sum(med_measures), 
+           porp_med_measures = med_measures / tot_med_measures) %>% 
+    arrange(Measure) %>% select(Measure, porp_med_measures)
+  
+  new_df <- df %>% 
+    mutate(measure_count_by_port = sum(Value), .by = c(Measure, Port_code)) %>%
+    select(Port_name, Measure, measure_count_by_port) %>% 
+    unique() %>% arrange(Port_name, Measure) %>% 
+    pivot_wider(names_from = Measure, values_from = measure_count_by_port) %>% 
+    replace(is.na(.), 0) %>% mutate( # using . means the current data frame :) 
+      Test_stat = apply(.[-1], 1, function(x) 
+        chisq.test(x, p =median_distn$porp_med_measures)$statistic)) %>% 
+    select(Port_name, Test_stat) # %>% left_join(border, ., by = join_by(Port_name))
+  
+  return(new_df)
+  
+}
+
+
+both_borders <- rbind(
+  do_chi_sq(border %>% filter(Border == "US-Mexico Border")), 
+  do_chi_sq(border %>% filter(Border == "US-Canada Border")))
+
+border_test_stat <- border %>% left_join(both_borders, by = join_by(Port_name)) 
+
+make_graph <- function(df){
+  biggest_porp <- c("Personal Vehicles", "Personal Vehicle Passengers", 
+                    "Pedestrians")
+  
+  graph <- df %>% get_porp() %>% 
+    mutate(Measure = fct_relevel(Measure, biggest_porp, after = 0)) %>% 
+    ggplot(aes(x = reorder(Port_name, Test_stat), y = measure_porp, 
+               fill = Measure)) + 
+    geom_col() + coord_flip() + 
+    theme(plot.title = element_text(hjust=0.5)) + # legend.position = "bottom"
+    xlab("") + ylab("Porportion by Measure") 
+  return(graph)
+}
+
+get_porp <- function(df){
+  df2 <- df %>% 
+    mutate(measure_count_by_port = sum(Value), .by = c(Measure, Port_name)) %>%
+    mutate(total_count_by_port = sum(Value), .by = Port_name) %>% 
+    mutate(measure_porp = measure_count_by_port / total_count_by_port) %>% 
+    select(Port_name, Test_stat, measure_porp, Measure) %>% unique()
+  return(df2)
+}
+
+can <- make_graph(border_test_stat %>% filter(Border == "US-Canada Border")) + 
+  ggtitle("US-Canada Border")
+
+mex <- make_graph(border_test_stat %>% filter(Border == "US-Mexico Border")) + 
+  ggtitle("US-Mexico Border")
+
+
+mex
+can
+
+# re do witih the porportions (not the totals)
+do_chi_sq2 <- function(df){
+  median_distn <-  df %>% 
+    mutate(med_measures = mean(Value), .by = Measure) %>% 
+    select(Measure, med_measures) %>% unique() %>% 
+    mutate(tot_med_measures = sum(med_measures), 
+           porp_med_measures = med_measures / tot_med_measures) %>% 
+    arrange(Measure) %>% select(Measure, porp_med_measures)
+  
+  new_df <- df %>% 
+    mutate(measure_count_by_port = sum(Value), .by = c(Measure, Port_name)) %>%
+    mutate(total_count_by_port = sum(Value), .by = Port_name) %>% 
+    mutate(measure_porp = measure_count_by_port / total_count_by_port) %>% 
+    select(Port_name, Measure, measure_porp) %>% 
+    unique() %>% arrange(Port_name, Measure) %>% 
+    pivot_wider(names_from = Measure, values_from = measure_porp) %>% 
+    replace(is.na(.), 0) %>% mutate( # using . means the current data frame :) 
+      Test_stat = apply(.[-1], 1, function(x) 
+        chisq.test(x, p =median_distn$porp_med_measures)$statistic), 
+      simulate.p.value = TRUE) %>% 
+    select(Port_name, Test_stat) # %>% left_join(border, ., by = join_by(Port_name))
+  
+  return(new_df)
+  
+}
+
+
+both_borders2 <- rbind(
+  do_chi_sq2(border %>% filter(Border == "US-Mexico Border")), 
+  do_chi_sq2(border %>% filter(Border == "US-Canada Border")))
+
+border_test_stat2 <- border %>% left_join(both_borders2, by = join_by(Port_name)) 
+
+can1 <- make_graph(border_test_stat2 %>% filter(Border == "US-Canada Border") %>% 
+                     filter(Test_stat > quantile(Test_stat, .7))) + 
+  ggtitle("US-Canada Border (1)") + theme(legend.position = "none") + 
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))
+
+
+can2 <- make_graph(border_test_stat2 %>% filter(Border == "US-Canada Border") %>% 
+                     filter(Test_stat >= quantile(Test_stat, .37) & 
+                              Test_stat <= quantile(Test_stat, .7))) + 
+  ggtitle("US-Canada Border (2)") + theme(legend.position = "none") + 
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))
+
+
+can3 <- make_graph(border_test_stat2 %>% filter(Border == "US-Canada Border") %>% 
+                     filter(Test_stat < quantile(Test_stat, .37))) + 
+  ggtitle("US-Canada Border (3)") + theme(legend.position = "none") + 
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))
+
+
+mex1 <- make_graph(border_test_stat2 %>% filter(Border == "US-Mexico Border")) + 
+  ggtitle("US-Mexico Border") + theme(legend.position = "none") + 
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))
+
+
+leg <- ggpubr::as_ggplot(ggpubr::get_legend(make_graph(border_test_stat2) + 
+                                              theme(legend.position = "bottom")))
+
+
+four_grid <- gridExtra::grid.arrange(mex1, can1, can2, can3, nrow = 2, ncol = 2)
+
+gridExtra::grid.arrange(four_grid, leg, heights = c(5,1), padding = 0.5)
+
+
+all <- make_graph(border_test_stat2) + 
+  ggtitle("All Ports of Entry")
+
+border_test_stat2 %>% filter(Border == "US-Canada Border") %>% 
+  filter(Test_stat < quantile(Test_stat, .37)) %>% 
+  select(Port_name, Test_stat) %>% unique() 
+
+border_test_stat2 %>% filter(Border == "US-Canada Border") %>% 
+  filter(Test_stat > quantile(Test_stat, .7)) %>% 
+  select(Port_name) %>% unique() 
+
+
+border_test_stat2 %>% filter(Border == "US-Canada Border") %>% 
+  filter(Test_stat >= quantile(Test_stat, .37) & Test_stat <= quantile(Test_stat, .7)) %>% 
+  select(Port_name) %>% unique()
+
+can2
+can22
+mex2
+all
+
+border_test_stat %>% arrange(-Test_stat) %>%  select(Port_name, Test_stat, Border) %>% 
+  unique() %>% filter(Border == "US-Mexico Border")
+
+border_test_stat2 %>% arrange(Test_stat) %>%  select(Port_name, Test_stat, Border) %>% 
+  unique() %>% filter(Border == "US-Mexico Border")
+
+# border_test_stat2 %>% arrange(Test_stat) %>%  select(Port_name, Test_stat, Border) %>% 
+#   unique() %>% filter(Border == "US-Mexico Border")
+
+# older revamped multinomail stuff --------------
+
+# old plots 
+mex <- border_test_stat %>% filter(Border == "US-Mexico Border") %>% 
+  ggplot(aes(x = reorder(Port_name, Test_stat), fill = Measure)) + 
+  geom_bar(position = "identity") + coord_flip() + 
+  theme(legend.position = "none", plot.title = element_text(hjust=0.5)) +
+  xlab("") + ylab("") + ggtitle("US-Mexico Border")
+
+can <- border_test_stat %>% filter(Border == "US-Canada Border") %>% 
+  ggplot(aes(x = reorder(Port_name, Test_stat), fill = Measure)) + 
+  geom_bar(position = "fill") + coord_flip() + 
+  theme(legend.position = "none", plot.title = element_text(hjust=0.5)) +
+  xlab("") + ylab("Porportion by Measure") + ggtitle("US-Canada Border") 
+
+
+# overal_median_distn <-  border %>% 
+#   # filter(Border == "US-Mexico Border", Type == "People") %>% 
+#   mutate(med_measures = mean(Value), .by = Measure) %>% 
+#   select(Measure, med_measures) %>% unique() %>% 
+#   mutate(tot_med_measures = sum(med_measures), 
+#          porp_med_measures = med_measures / tot_med_measures) %>% 
+#   arrange(Measure) %>% select(Measure, porp_med_measures)
+# 
+# 
+# # get the total counts of each measure by each port 
+# border2 <- border %>% 
+#   # filter(Border == "US-Mexico Border", Type == "People") %>% 
+#   mutate(measure_count_by_port = sum(Value), .by = c(Measure, Port_code)) %>%
+#   select(Port_name, Measure, measure_count_by_port) %>% 
+#   unique() %>% arrange(Port_name, Measure) %>% 
+#   pivot_wider(names_from = Measure, values_from = measure_count_by_port) %>% 
+#   replace(is.na(.), 0) %>% mutate( # using . means the current data frame :) 
+#     Test_stat = apply(.[-1], 1, function(x) 
+#       chisq.test(x, p =overal_median_distn$porp_med_measures)$statistic)) %>% 
+#   select(Port_name, Test_stat) %>% left_join(border, ., by = join_by(Port_name))
+
 
 # get the total counts of each measure by each port 
 border_multinom_long <- border %>% 
@@ -19,6 +216,7 @@ border_multinom_long <- border %>%
   unique() %>% arrange(Port_code, Measure) %>% 
   # select what you need 
   select(Port_code, Measure, measure_count_by_port)
+
 
 # make it wide 
 border_multinom_wide <- border_multinom_long %>%

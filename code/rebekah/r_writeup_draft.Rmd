@@ -102,8 +102,131 @@ border %>% select(Port_name, State, Border) %>% unique() %>%
     inherit.aes = TRUE)  + 
   ylab("Port of Entry Count") + xlab("State") + ggtitle("Port of Entry Count by State")
 ```
-<!-- to do !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  -->
+We also investigated the multinational distributions of measure counts for each port. This was done by finding the two median values for all twelve measures for ports on the US-Canada border and ports on the US-Mexico border. We computed the proportion of the median measure counts, thus creating a multinational distribution with 12 outcomes. Next, we found the multinational distribution for each of the 118 ports of entry. To find ports that significantly deviate in measure proportions from the median ports (for their respective border), we used a $\chi^2$ goodness of fit test with Monte Carlo simulation. Proportions were used instead of the actual counts was because some ports have significantly more traffic than other. Since the $\chi^2$ test statistic is a summation involving the observed  and expected values, ports with more traffic would naturally have a higher test statistic than ports with low traffic that significantly differ from the median distribution. Including Monte Carlo simulation helped improve the accuracy of our test, since percentages are extreamly small values. Due to the approximations, we decided to ignore p-values and instead rank the ports by test statistic, resulting in Figure \@ref(fig:dist-fig).
+
 <!-- distribution of types of measures by port  -->
+
+```{r, warnings = FALSE, include = FALSE}
+# compute the chi sq test fxn
+do_chi_sq2 <- function(df){
+  median_distn <-  df %>% 
+    mutate(med_measures = mean(Value), .by = Measure) %>% 
+    select(Measure, med_measures) %>% unique() %>% 
+    mutate(tot_med_measures = sum(med_measures), 
+           porp_med_measures = med_measures / tot_med_measures) %>% 
+    arrange(Measure) %>% select(Measure, porp_med_measures)
+  
+  new_df <- df %>% 
+    mutate(measure_count_by_port = sum(Value), .by = c(Measure, Port_name)) %>%
+    mutate(total_count_by_port = sum(Value), .by = Port_name) %>% 
+    mutate(measure_porp = measure_count_by_port / total_count_by_port) %>% 
+    select(Port_name, Measure, measure_porp) %>% 
+    unique() %>% arrange(Port_name, Measure) %>% 
+    pivot_wider(names_from = Measure, values_from = measure_porp) %>% 
+    replace(is.na(.), 0) %>% mutate( # using . means the current data frame :) 
+      Test_stat = apply(.[-1], 1, function(x) 
+        chisq.test(x, p =median_distn$porp_med_measures)$statistic), 
+      simulate.p.value = TRUE) %>% 
+    select(Port_name, Test_stat) # %>% left_join(border, ., by = join_by(Port_name))
+  
+  return(new_df)
+  
+}
+
+# getting the proportion fxn
+get_porp <- function(df){
+  df2 <- df %>% 
+    mutate(measure_count_by_port = sum(Value), .by = c(Measure, Port_name)) %>%
+    mutate(total_count_by_port = sum(Value), .by = Port_name) %>% 
+    mutate(measure_porp = measure_count_by_port / total_count_by_port) %>% 
+    select(Port_name, Test_stat, measure_porp, Measure) %>% unique()
+  return(df2)
+}
+
+# make the graph fxn
+make_graph <- function(df){
+  biggest_porp <- c("Personal Vehicles", "Personal Vehicle Passengers", 
+                    "Pedestrians")
+  
+  graph <- df %>% get_porp() %>% 
+    mutate(Measure = fct_relevel(Measure, biggest_porp, after = 0)) %>% 
+    ggplot(aes(x = reorder(Port_name, Test_stat), y = measure_porp, 
+               fill = Measure)) + 
+    geom_col() + coord_flip() + 
+    theme(plot.title = element_text(hjust=0.5)) + # legend.position = "bottom"
+    xlab("") + ylab("Porportion by Measure") 
+  return(graph)
+}
+
+# compute for both borders separately 
+both_borders2 <- rbind(
+  do_chi_sq2(border %>% filter(Border == "US-Mexico Border")), 
+  do_chi_sq2(border %>% filter(Border == "US-Canada Border")))
+
+# add to og df
+border_test_stat2 <- border %>% 
+  left_join(both_borders2, by = join_by(Port_name)) 
+
+# make plots, split canada up! 
+can1 <- make_graph(border_test_stat2 %>% filter(Border == "US-Canada Border") %>% 
+                     filter(Test_stat > quantile(Test_stat, .7))) + 
+  ggtitle("US-Canada Border (1)") + theme(legend.position = "none") + 
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) + ylab("")
+
+
+can2 <- make_graph(border_test_stat2 %>% filter(Border == "US-Canada Border") %>% 
+                     filter(Test_stat >= quantile(Test_stat, .37) & 
+                              Test_stat <= quantile(Test_stat, .7))) + 
+  ggtitle("US-Canada Border (2)") + theme(legend.position = "none") + 
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))
+
+
+can3 <- make_graph(border_test_stat2 %>% filter(Border == "US-Canada Border") %>% 
+                     filter(Test_stat < quantile(Test_stat, .37))) + 
+  ggtitle("US-Canada Border (3)") + theme(legend.position = "none") + 
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE))
+
+
+mex1 <- make_graph(border_test_stat2 %>% filter(Border == "US-Mexico Border")) + 
+  ggtitle("US-Mexico Border") + theme(legend.position = "none") + 
+  scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) + ylab("")
+
+
+# extract a legend
+
+# fxn from stack exchange, had problems with legend being too big
+# https://stackoverflow.com/questions/52297978/decrease-overal-legend-size-elements-and-text
+addSmallLegend <- function(myPlot, pointSize = 0.5, textSize = 3, spaceLegend = 0.1) {
+    myPlot +
+        guides(shape = guide_legend(override.aes = list(size = pointSize)),
+               color = guide_legend(override.aes = list(size = pointSize))) +
+        theme(legend.title = element_text(size = textSize), 
+              legend.text  = element_text(size = textSize),
+              legend.key.size = unit(spaceLegend, "lines"))
+}
+
+legend <- ggpubr::as_ggplot(
+  ggpubr::get_legend(
+    addSmallLegend(
+      make_graph(border_test_stat2) + theme(legend.position = "bottom"), 
+      pointSize = 1, textSize = 7, spaceLegend = 1)))
+
+# make initial combined plot
+four_grid <- gridExtra::grid.arrange(mex1, can1, can2, can3, nrow = 2, ncol = 2)
+
+```
+
+```{r dist-fig, fig.cap = "Multinomail distribtions of each port, ranked by test statistic"}
+# make final combined plot with legend
+gridExtra::grid.arrange(four_grid, legend, heights = c(5,1))
+#  top = grid::textGrob("Measure Distributions by Port of Entry",gp=grid::gpar(fontsize=17,font=1))
+# https://stackoverflow.com/questions/14726078/changing-title-in-multiplot-ggplot2-using-grid-arrange
+```
+
+Figure \@ref(fig:dist-fig) shocases the multinational distributions for each port, and they are arranged by having the port with the largest test statistic at the top. Labels were removed for some of the ports to prevent over-plotting. The Canada (1) pane contains the ports with the highest test statistic on the US-Canada border. Interestingly, pedestrians, personal vehicles, and personal vehicle passengers all have the highest overal counts for most of the ports. For the US-Mexico border, Cross Border Xpress and Boquillas have the greatest deviation from the median distribution, with a large majority of crossings being pedestrians. Upon further investigation, Cross Border Xpress is a pedestrian bridge between two airports in San Diego and Tijuana. The distribution of El Passo is closest to the US-Mexico border median distribution. For the US-Canada border, the ports Anchorage and Skagway have the greatest deviation from the US-Canada border median distribution, with Highgate Springs having the least deviation. Also, ports on the US-Mexico border have more pedestrians than ports on the US-Canada border, which can be plausably explained by climate differences. 
+
+
+
 
 ## US-Canada ports of entry
 
@@ -117,27 +240,30 @@ border %>% select(Port_name, State, Border) %>% unique() %>%
 
 ## Questions about the data
 
-<!-- to do !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  -->
-<!-- type this out more  -->
-What's going on with passenger trains in Mexico?
+According to the Bureau of Transportation Statistics FAQ on border crossing data, there are no passenger trains between Mexico and the United States. For freight trains, crews are changed at the US-Mexico Border. This means there should be no non-zero entries for train passengers in our data. Howwever, there are are 1481 non-zero entries for train passengers, ranging from the years 1996 to 2023 with most of them being in California. This inconsistancy needs to be further investigated. 
+
+```{r, include = FALSE}
+border %>% filter(Border == "US-Mexico Border", Measure == "Train Passengers", Value > 0) %>% 
+  select(Value, Year, State) %>% summary()
+```
 
 
+Most ports of entry have over 100 entries in our data set, but three ports have less than 100: Algonac, Anchorage, and Cross Border Xpress. For Cross Border Xpress, this makes sense since it was recently opened in 2015. 
+Interesting, Anchorage only has one entry and is quite distant from the US-Canadian border in Alaska. It only lists empty shipping containers in September 2023.  
 
-Most ports of entry have over 100 entries in our data set, but three ports have less than 100. Interesting, Anchorage only has one entry and is quite distant from the US-Canadian border in Alaska.
-
-```{r}
+```{r, include = FALSE}
 border %>% group_by(Port_name) %>% 
   summarise(n = n()) %>% filter(n < 100)
 ```
 
-The entry for Anchorage is just for some empty shipping containers in September 2023. 
+<!-- The entry for Anchorage is just for some empty shipping containers in September 2023.  -->
 
-```{r}
+```{r, include = FALSE}
 border %>% filter(Port_name == "Anchorage")
 ```
 
-
-Are our 0s actually 0 or NA? Sometimes ports are closed but we know that certain high-traffic ports with lots of commuters probably don't have 0 crossings in the data :( For example, during the year 1996, San Ysidro (a major commuting port on the US-Mexico border) has a personal vechiel passenger count of 0 for every month. 
+Another concern with our data is the zero entries. We wonder if they are actually zeross or NA values. 
+ASometimes ports are closed (especially seasonally during winter for the US-Canada Border) but we know that certain high-traffic ports with lots of commuters probably still had crossings during months where zeros are rerecorded. For example, during the year 1996, San Ysidro (a major commuting port on the US-Mexico border) has a personal vehicle passenger count of zero for every month. For the purposes of our analysis, we treated the zero entries as  zeros and not as NA values. 
 
 ```{r, include=FALSE}
 border %>% filter(Port_name == "San Ysidro", Value == 0, Measure == "Personal Vehicle Passengers") %>% arrange(Date)
@@ -150,7 +276,7 @@ border %>% filter(Port_name == "San Ysidro", Value == 0, Measure == "Personal Ve
 ## Summary of Findings
 
 ## Future Work
-Can we distinguish between commercial and private traffic? Or is it confounded (passenger trains vs freight trains)
-Investigating imports and exports by truck containers? (empty = export, loaded = import)
+
+One possible venture for future work is distinguishingbetween commercial and private traffic. There are some issues with it possibly being confounded in the data set, such as passenger trains and freight trains both being counted as 'trains'. However, we may be able to investigate the flow of imports and exports by comparing empty truck and rail containers (exports) with loaded truck and rail containers. 
 
 <!-- Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. -->
