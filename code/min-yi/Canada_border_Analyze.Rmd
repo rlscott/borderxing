@@ -1,0 +1,213 @@
+---
+title: "Canada_border_Analyze"
+author: "Min-Yi Chen"
+date: "2023-11-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,echo=FALSE}
+load("~/Documents/ISU/23Fall/STAT579/final project/data/border_clean.Rdata")
+#load("C:/Users/rebek/github/packages/borderxing/data/border_clean.Rdata")
+library(tidyverse)
+library(plotly)
+library(gridExtra)
+#ggplotly()
+#read data
+Canada_border <- border %>%
+  filter(Border == "US-Canada Border")%>%
+  mutate(
+    Year = factor(Year,levels = c(1996,1997,1998,1999,2000,2001,2002,
+                                  2003,2004,2005,2006,2007,2008,2009,2010,2011,
+                                  2012,2013,2014,2015,2016,2017,2018,2019,2020,
+                                  2021,2022,2023)),
+    date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)
+  )
+```
+
+
+
+# Bus Transporation
+
+```{r,echo=FALSE}
+Canada_border %>%
+  filter(Measure == 'Buses' & Type == 'Object')%>%
+  group_by(State) %>%
+  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_point()+facet_wrap(~State,scales = 'free_y') +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+```{r,echo=FALSE}
+
+Canada_border %>%
+  filter(Year == '2000' & State == 'Montana' & Type == 'Object')%>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_object = sum(Value)
+  ) %>% ggplot(aes(x = factor(Month), y=Transporation_via_object,group = 1))+geom_line()+ ggtitle("Plot of Transporation_via_object by Month")
+
+```
+
+
+```{r,echo=FALSE}
+Canada_border %>%
+  filter(Measure == 'Bus Passengers' & Type == 'People')%>%
+  group_by(State) %>%
+  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_point()+facet_wrap(~State,scales = 'free_y')+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+
+
+
+```{r,echo=FALSE}
+
+Maine_1998 <- Canada_border %>%
+  filter(Year=='1998' & State == 'Maine' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Washington_2006 <- Canada_border %>%
+  filter(Year=='2006' & State == 'Washington' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Minnesota_1997 <- Canada_border %>%
+  filter(Year=='1997' & State == 'Minnesota' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Idaho_2000 <- Canada_border %>%
+  filter(Year=='2000' & State == 'Idaho' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Michigan_1997 <- Canada_border %>%
+  filter(Year=='1997' & State == 'Michigan' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Vermont_2019 <- Canada_border %>%
+  filter(Year=='1998' & State == 'Vermont' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+```
+
+```{r,echo=FALSE}
+ggplot() + 
+  geom_line(data = Maine_1998,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Maine_1998')) + 
+  geom_line(data = Washington_2006,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Washington_2006')) + 
+  geom_line(data = Minnesota_1997,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Minnesota_1997')) +
+  geom_line(data = Idaho_2000,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Idaho_2000' )) +
+  geom_line(data = Michigan_1997,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Michigan_1997' )) +
+  geom_line(data = Vermont_2019,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Vermont_2019' )) +
+  scale_color_manual(name = "Year", values = c("Maine_1998" = "steelblue", "Washington_2006" = "coral2","Minnesota_1997" = "darkgreen", "Idaho_2000" = "orange","Michigan_1997" = "purple","Vermont_2019" = "darkblue")) +geom_point(aes(x='Nov',y=681595),colour="steelblue")+geom_point(aes(x='Oct',y=1092705),colour="coral2")+geom_point(aes(x='Jun',y=331095),colour="darkgreen") +geom_point(aes(x='May',y=46723),colour="orange")+geom_point(aes(x='Dec',y=2193053),colour="purple")+geom_point(aes(x='May',y=281528),colour="darkblue")
+```
+
+
+#7 years to a group (object)
+```{r,echo=FALSE}
+Group_1_Ob <- Canada_border %>%
+  filter((Year=='1996'|Year=='1997'|Year=='1998'|Year=='1999'|Year=='2000'|Year=='2001'|Year=='2002')&Type == 'Object' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_2_Ob <- Canada_border %>%
+  filter((Year=='2003'|Year=='2004'|Year=='2005'|Year=='2006'|Year=='2007'|Year=='2008'|Year=='2009')&Type == 'Object' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_3_Ob <- Canada_border %>%
+  filter((Year=='2010'|Year=='2011'|Year=='2012'|Year=='2013'|Year=='2014'|Year=='2015'|Year=='2016')&Type == 'Object' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_4_Ob <- Canada_border %>%
+  filter((Year=='2017'|Year=='2018'|Year=='2019'|Year=='2020'|Year=='2021'|Year=='2022'|Year=='2023')&Type == 'Object' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+```
+```{r,echo=FALSE}
+
+ggplot() + 
+  geom_line(data = Group_1_Ob,aes(x = Month, y=average_value,group = 1,colour = '1996-2002')) + 
+  geom_line(data = Group_2_Ob,aes(x = Month, y=average_value,group = 1,colour = '2003-2009')) + 
+  geom_line(data = Group_3_Ob,aes(x = Month, y=average_value,group = 1,colour = '2010-2016')) +
+  geom_line(data = Group_4_Ob,aes(x = Month, y=average_value,group = 1,colour = '2017-2023' )) +
+  scale_color_manual(name = "Year Group", values = c("1996-2002" = "steelblue", "2003-2009" = "coral2","2010-2016" = "green", "2017-2023" = "orange")) + ggtitle('Average of transportation in object within 7 years')
+
+```
+
+
+#7 years to a group (people)
+```{r,echo=FALSE}
+Group_1_People <- Canada_border %>%
+  filter((Year=='1996'|Year=='1997'|Year=='1998'|Year=='1999'|Year=='2000'|Year=='2001'|Year=='2002')&Type == 'People' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_2_People <- Canada_border %>%
+  filter((Year=='2003'|Year=='2004'|Year=='2005'|Year=='2006'|Year=='2007'|Year=='2008'|Year=='2009')&Type == 'People' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_3_People <- Canada_border %>%
+  filter((Year=='2010'|Year=='2011'|Year=='2012'|Year=='2013'|Year=='2014'|Year=='2015'|Year=='2016')&Type == 'People' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_4_People <- Canada_border %>%
+  filter((Year=='2017'|Year=='2018'|Year=='2019'|Year=='2020'|Year=='2021'|Year=='2022'|Year=='2023')&Type == 'People' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+```
+```{r,echo=FALSE}
+
+ggplot() + 
+  geom_line(data = Group_1_People,aes(x = Month, y=average_value,group = 1,colour = '1996-2002')) + 
+  geom_line(data = Group_2_People,aes(x = Month, y=average_value,group = 1,colour = '2003-2009')) + 
+  geom_line(data = Group_3_People,aes(x = Month, y=average_value,group = 1,colour = '2010-2016')) +
+  geom_line(data = Group_4_People,aes(x = Month, y=average_value,group = 1,colour = '2017-2023' )) +
+  scale_color_manual(name = "Year Group", values = c("1996-2002" = "steelblue", "2003-2009" = "coral2","2010-2016" = "green", "2017-2023" = "orange")) + ggtitle('Average of transportation in people within 7 years')
+
+```
+
+

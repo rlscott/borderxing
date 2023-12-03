@@ -186,8 +186,7 @@ Canada_border %>%
 ```{r}
 Canada_border %>%
   filter(Measure == 'Buses' & State == 'Montana')%>%
-  group_by(State) %>%
-  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_line()
+  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_point()
 ```
 
 #Nov 2000, value 124
@@ -236,5 +235,10 @@ ggplot() +
 
 ```
 
-
+```{r}
+Canada_border %>%
+  filter(Measure == 'Bus Passengers' & State == 'Montana')%>%
+  group_by(State) %>%
+  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_line()
+```
 
