@@ -2,7 +2,7 @@
 title: "Border Write Up"
 author: "Liam Hemingway"
 date: "`r Sys.Date()`"
-output: html_document
+output: bookdown::html_document2
 ---
 
 ```{r setup, include=FALSE}
@@ -17,47 +17,54 @@ library(plotly)
 library(bookdown)
 ```
 ```{r, include=FALSE}
-load("data/border_clean.Rdata")
+# load the data with the here package, more at https://here.r-lib.org/
+here::i_am("Border Writen.Rmd") # establish where this document is
+here::here()
+# here::here("../../data/border_clean.Rdata") # make a path to where the data is
+load(here::here("../../data/border_clean.Rdata")) # load the data
+
+# load("data/border_clean.Rdata")
 ```
 
 ```{r aggrigate, echo=F, message=F, fig.cap="Sum of people crossing the US and Cannadian border over time. The red line indicates 9/11, gold indicates when Donanld Trump was elected, and purple indicates the start of Covid 19." }
-border %>% 
-  filter(Type=="People") %>% 
+border %>%
+  filter(Type=="People") %>%
   mutate(date=lubridate::my(Date),
          month=month(date),
-         year=year(date)) %>% 
-  group_by(month,year,Border) %>% 
-  summarize(Value=sum(Value)) %>% 
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value)) %>%
   ggplot(aes(x=year + (month-1)/12,y=Value))+
   geom_line()+
   # geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
   geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
   geom_vline(xintercept=2017+(1-1)/12,color='gold')+ # Trump
-  geom_vline(xintercept=2020+(3-1)/12,color='purple')+ # Covid
+  geom_vline(xintercept=2020+(3-1)/12,color='deepskyblue4')+ # Covid
   facet_wrap(~Border)+
-  theme(legend.position = "none")+
+  theme_bw()+
   ggtitle("Agreggate Personal Border Crossings Over Time Faceted by Border")+
   xlab("Year")+
   ylab('Number of Crossings')
 ```
-\@ref(fig:aggrigate) displays the aggregate pattern from January 1996 to September 2023 for both the Mexican and Canadian border. An important note to remember is that this is the total number of individuals that have crossed the border as opposed to objects. The red lines are potentially significant historical events that may explain certain patterns in the graph.
+Figure \@ref(fig:aggrigate) displays the aggregate pattern from January 1996 to September 2023 for both the Mexican and Canadian border. An important note to remember is that this is the total number of individuals that have crossed the border as opposed to objects. The red lines are potentially significant historical events that may explain certain patterns in the graph.
 
 We can see easily that Covid 19 had a large impact on both Canadian and Mexican border crossings. This is unsurprising since many institutions shut down and border crossing was severely limited. The Presidency of Donald Trump in contrast seemed to have very little if any effect on either border, despite his heavy involvement with the Mexican Border. 9/11 however seemed to have a much more dynamic effect. It has an obvious lasting reduction in Mexican border crossings, yet Canada had nearly now effect from this event. This could be because of any number of reasons, xenophobia not last on the list, however discerning that cause is not possible with the current data.
 
-The story of 9/11 gets even more interesting though on the Mexican border. Two of the largest ports, Calexico in California and El Paso in Texas have a particularly distinguished change in total crossings at the 9/11 timestamp seen in \@ref(fig:ports). 
+The story of 9/11 gets even more interesting though on the Mexican border. Two of the largest ports, Calexico in California and El Paso in Texas have a particularly distinguished change in total crossings at the 9/11 timestamp seen in Figure \@ref(fig:ports).
 ```{r ports,echo=F,message=F, fig.cap="Sum of people crossing the Mexican border ports Calexico and El Paso over time. The red line indicates 9/11"}
-border %>% 
-  filter(Type=="People") %>% 
+border %>%
+  filter(Type=="People") %>%
   mutate(date=lubridate::my(Date),
          month=month(date),
-         year=year(date)) %>% 
-  group_by(Port_code,Port_name,month,year,Border) %>% 
-  summarize(Value=sum(Value)) %>% 
-  filter(Port_name=="El Paso"|Port_name=="Calexico") %>% 
+         year=year(date)) %>%
+  group_by(Port_code,Port_name,month,year,Border) %>%
+  summarize(Value=sum(Value)) %>%
+  filter(Port_name=="El Paso"|Port_name=="Calexico") %>%
   ggplot(aes(x=year + (month-1)/12,y=Value))+
   geom_line()+
   geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
   facet_wrap(~Port_name,scales="free_y")+
+  theme_bw()+
   ggtitle("Agreggate Personal Border Crossings Over Time in Ports Calexico and El Paso")+
   xlab("Year")+
   ylab('Number of Crossings')
@@ -65,21 +72,21 @@ border %>%
 ```
 ```{r,include=F}
 filt<-border %>% filter(Type=="People",Border=="US-Mexico Border",
-                        Port_name!="El Paso",Port_name!="Calexico") %>% 
+                        Port_name!="El Paso",Port_name!="Calexico") %>%
   mutate(date=lubridate::my(Date),
          month=month(date),
-         year=year(date)) %>% 
-  group_by(month,year,Border) %>% 
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
   summarize(Value=sum(Value))
 ```
 ```{r reduced,echo=F,message=F, fig.cap="Sum of people crossing the US and Cannadian border over time. The red line indicates 9/11"}
-border %>% 
-  filter(Type=="People",Border=="US-Mexico Border") %>% 
+border %>%
+  filter(Type=="People",Border=="US-Mexico Border") %>%
   mutate(date=lubridate::my(Date),
          month=month(date),
-         year=year(date)) %>% 
-  group_by(month,year,Border) %>% 
-  summarize(Value=sum(Value)) %>% 
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value)) %>%
   ggplot(aes(x=year + (month-1)/12))+
   geom_line(aes(y=Value))+
   geom_line(aes(y=filt$Value),color='deepskyblue3')+
@@ -89,11 +96,11 @@ border %>%
   # geom_vline(xintercept=2017+(1-1)/12,color='red')+ # Trump
   # geom_vline(xintercept=2020+(3-1)/12,color='red')+ # Covid
   # facet_wrap(~State,scales="free_y")+
-  theme(legend.position = "none")+
+  theme_bw()+
   ggtitle("Agreggate Personal Border Crossings Over Time With and Without El Paso\nand Calexico")+
   xlab("Year")+
   ylab('Number of Crossings')
 ```
-Since these ports are so large, it is reasonable to believe they exert a lot of control over the overall pattern in \@ref(fig:aggrigate). Thus we see a significantly reduced effect of 9/11 when taking out these two ports shown by the blue line in \@ref(fig:reduced). In fact the lasting reduction in border crossings has been almost entirely eliminated, and all that remains is a short dip. This dip seems to be a result of a few different ports, and not as easily explained away. One large example of a port having a short dip is port San Ysidro in California. Just a few ports explaing the majority of the differance between pre 9/11 and post 9/11 border crossings implies that an investigation into those two ports could be the most effective way of determining the reason why 9/11 had such a large effect on the Mexican border while having small effect on the Canadian one.
+Since these ports are so large, it is reasonable to believe they exert a lot of control over the overall pattern in Figure \@ref(fig:aggrigate). Thus we see a significantly reduced effect of 9/11 when taking out these two ports shown by the blue line in Figure \@ref(fig:reduced). In fact the lasting reduction in border crossings has been almost entirely eliminated, and all that remains is a short dip. This dip seems to be a result of a few different ports, and not as easily explained away. One large example of a port having a short dip is port San Ysidro in California. Just a few ports explain the majority of the difference between pre 9/11 and post 9/11 border crossings implies that an investigation into those two ports could be the most effective way of determining the reason why 9/11 had such a large effect on the Mexican border while having small effect on the Canadian one.
 
 It is also worth noting that there are other smaller ports that exhibit the same phenomenon as El Paso and Calexico. However they are so small that their addition to the list of removed ports barely changes pattern at all. One example of this is port Roma in Texas. This means that using Calexico and El Paso to explain the 9/11 effect should not be treated as comprehensive, but as the dominant locations of the effect.
