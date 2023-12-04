@@ -78,7 +78,7 @@ border %>% select(State, Border) %>% unique() %>% group_by(Border) %>% summarise
 Figure \@ref(fig:all-map) shows the location of each border crossing station mapped by latitude and longitude. This interactive map was created using the leaflet package. Ankoridge is not included in this map since its coordinates are missing from the data (more about this port will be discussed later).
 
 <!-- a map of the crossings -->
-```{r all-map, fig.cap = "Map of the 118 US Border Ports of Entry"}
+```{r all-map, fig.cap = "Map of the 118 US Border Ports of Entry", fig.align='center'}
 
 stations <- unique(border %>% select(Port_code, Port_name, Longitude, Latitude) %>% filter(Port_name != "Anchorage")) 
 
@@ -92,7 +92,7 @@ leaflet::leaflet(stations) %>%
 As shown in Figure \@ref(fig:by-state), North Dakota and Washington have the most ports of entry for the US-Canadian border and Texas has the most ports of entry for the US-Mexico border. There are 10 states on the US-Canada border and 4 states on the US-Mexico border. 
 
 <!-- plot of border entry ports count by state -->
-```{r by-state, out.width="50%", fig.cap = "Count of Ports of Entry by State, Colored by Border"}
+```{r by-state, out.width="50%", fig.cap = "Count of Ports of Entry by State, Colored by Border", fig.align='center'}
 border %>% select(Port_name, State, Border) %>% unique() %>% 
   group_by(State) %>% mutate(n = n()) %>% select(State, Border, n) %>% unique() %>% 
   ggplot(aes(x = reorder(State, n), y = n, fill = Border)) + geom_bar(stat = "identity") + coord_flip() +
@@ -106,7 +106,7 @@ We also investigated the multinational distributions of measure counts for each 
 
 <!-- distribution of types of measures by port  -->
 
-```{r, warnings = FALSE, include = FALSE}
+```{r, warnings = FALSE, include = FALSE, fig.align='center'}
 # compute the chi sq test fxn
 do_chi_sq2 <- function(df){
   median_distn <-  df %>% 
@@ -215,7 +215,7 @@ four_grid <- gridExtra::grid.arrange(mex1, can1, can2, can3, nrow = 2, ncol = 2)
 
 ```
 
-```{r dist-fig, out.width="50%", fig.cap = "Multinomail distribtions of each port, ranked by test statistic"}
+```{r dist-fig, out.width="70%", fig.cap = "Multinomail distribtions of each port, ranked by test statistic", fig.align='center'}
 # make final combined plot with legend
 gridExtra::grid.arrange(four_grid, legend, heights = c(5,1))
 #  top = grid::textGrob("Measure Distributions by Port of Entry",gp=grid::gpar(fontsize=17,font=1))
@@ -229,7 +229,363 @@ Figure \@ref(fig:dist-fig) shocases the multinational distributions for each por
 
 ## US-Canada ports of entry
 
+```{r,echo=FALSE, message = FALSE, warning = FALSE}
+Canada_border <- border %>%
+  filter(Border == "US-Canada Border")%>%
+  mutate(
+    Year = factor(Year,levels = c(1996,1997,1998,1999,2000,2001,2002,
+                                  2003,2004,2005,2006,2007,2008,2009,2010,2011,
+                                  2012,2013,2014,2015,2016,2017,2018,2019,2020,
+                                  2021,2022,2023)),
+    date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)
+  )
+```
+
+
+We have identified outliers in the scatter plot related to Buses Transportation in Figure \@ref(fig:bus-object). Notably, in November 1999, Port Sweetgrass recorded a significantly higher count of 1375 instances of bus transportation. Conversely, in June 2021, Port Limestone reported a comparatively lower count of 173 instances of bus transportation.
+
+```{r bus-object, fig.cap = "Numbers of Crossing of Object by State",echo=FALSE,out.width="50%",fig.align='center'}
+Canada_border %>%
+  filter(Measure == 'Buses' & Type == 'Object')%>%
+  group_by(State) %>%
+  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_point(colour = "deepskyblue4")+facet_wrap(~State,scales = 'free_y') +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_point(data=Canada_border %>%
+             filter(Measure == 'Buses' & Type == 'Object' & State == 'Montana' & Value == 1375),
+             pch = 24,
+             size=4, 
+             colour = "red") + geom_point(data=Canada_border %>%
+             filter(Measure == 'Buses' & Type == 'Object' & State == 'Maine' & Value == 173),
+             pch = 24,
+             size=4, 
+             colour = "red")+scale_color_brewer(type = "seq", palette = "Blues") + theme_bw() + 
+  xlab("Date") +
+  ylab("Number of Crossing")
+
+```
+
+We conducted an analysis of the total object transportation for the year 1999 in Montana and the year 2021 in Maine. Upon pinpointing specific months within each year in Figure \@ref(fig:all-trans-object), it becomes evident that these data points do not align with the peak of the plot. This observation suggests that bus transportation may serve as an alternative choice, particularly when other modes of transportation prove impractical for individuals crossing the border.
+
+```{r all-trans-object, fig.cap = "Plot of Transporation_via_object by Month",echo=FALSE,out.width="50%",fig.align='center'}
+
+Montana_1999<- Canada_border %>%
+  filter(Year == '1999' & State == 'Montana' & Type == 'Object')%>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_object = sum(Value)
+  )
+
+Maine_2021<- Canada_border %>%
+  filter(Year == '2021' & State == 'Maine' & Type == 'Object')%>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_object = sum(Value)
+  )
+
+ggplot() + 
+  geom_line(data = Montana_1999,aes(x = Month, y=Transporation_via_object,group = 1,colour = 'Montana_1999')) + 
+  geom_line(data = Maine_2021,aes(x = Month, y=Transporation_via_object,group = 1,colour = 'Maine_2021'))+
+  scale_color_manual(name = "Year", values = c("Montana_1999" = "deepskyblue3", "Maine_2021" = "deepskyblue4"))+geom_point(aes(x='Jun',y=70976),colour="deepskyblue4")+geom_point(aes(x='Nov',y=70074),colour="deepskyblue3") + theme_bw() + ylab('Numbers of Crossing with Obejct') 
+
+```
+
+In order to validate our hypothesis, we conducted an examination of Bus Passengers transportation across states, revealing six outliers in Figure \@ref(fig:bus-ppl). These outliers are as follows:
+
+* 46712 Bus Passengers in November 1998 in Maine at Port Jackman
+* 159086 Bus Passengers in October 159086 in Washington at Port Blaine
+* 6026 Bus Passengers in June 1997 in Minnesota at Port Noyes
+* 2203 Bus Passengers in May 2000 in Idaho at Eastport ID
+* 135753 Bus Passengers in December 1997 in Michigan at Detroit
+* 19322 Bus Passengers in May 2019 in Vermont at Highgate Springs
+
+These instances, deviating significantly from the norm, warrant further investigation and may provide insights into the dynamics of bus transportation across state borders.
+
+
+```{r bus-ppl, fig.cap = "Numbers of Crossing of People by State",echo=FALSE,out.width="50%",fig.align='center'}
+Canada_border %>%
+  filter(Measure == 'Bus Passengers' & Type == 'People')%>%
+  group_by(State) %>%
+  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_point(colour = "deepskyblue4")+facet_wrap(~State,scales = 'free_y')+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_point(data=Canada_border %>%
+             filter(Measure == 'Bus Passengers' & Type == 'People' & State == 'Maine' & Value == 46712 & Year == '1998'),
+             pch = 24,
+             size=4, 
+             colour = "red")+
+  geom_point(data=Canada_border %>%
+             filter(Measure == 'Bus Passengers' & Type == 'People' & State == 'Washington' & Value == 159086 & Year == '2006'),
+             pch = 24,
+             size=4, 
+             colour = "red")+
+  geom_point(data=Canada_border %>%
+             filter(Measure == 'Bus Passengers' & Type == 'People' & State == 'Minnesota' & Value == 6026 & Year == '1997'),
+             pch = 24,
+             size=4, 
+             colour = "red")+
+  geom_point(data=Canada_border %>%
+             filter(Measure == 'Bus Passengers' & Type == 'People' & State == 'Idaho' & Value == 2203 & Year == '2000'),
+             pch = 24,
+             size=4, 
+             colour = "red")+
+  geom_point(data=Canada_border %>%
+             filter(Measure == 'Bus Passengers' & Type == 'People' & State == 'Michigan' & Value == 135753 & Year == '1997'),
+             pch = 24,
+             size=4, 
+             colour = "red")+
+  geom_point(data=Canada_border %>%
+             filter(Measure == 'Bus Passengers' & Type == 'People' & State == 'Vermont' & Value == 19322 & Year == '2019'),
+             pch = 24,
+             size=4, 
+             colour = "red") + theme_bw()+ 
+  xlab("Date") +
+  ylab("Number of Crossing")
+
+```
+
+Upon isolating the specific months within the annual plot of total transportation via people in Figure \@ref(fig:all-trans-ppl), we observed that the identified outliers in both Buses and Bus Passengers transportation did not coincide with the peak of the plot. This outcome substantiates our initial assumption that bus transportation serves as an alternative choice, particularly when conventional transportation methods prove impractical for individuals crossing the border. Further analysis indicates that these outliers are not attributed to significant events, reinforcing the notion that the observed deviations in Buses/Bus Passengers transportation are likely driven by individual travel choices rather than external factors.
+
+
+```{r ,echo=FALSE}
+
+Maine_1998 <- Canada_border %>%
+  filter(Year=='1998' & State == 'Maine' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Washington_2006 <- Canada_border %>%
+  filter(Year=='2006' & State == 'Washington' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Minnesota_1997 <- Canada_border %>%
+  filter(Year=='1997' & State == 'Minnesota' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Idaho_2000 <- Canada_border %>%
+  filter(Year=='2000' & State == 'Idaho' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Michigan_1997 <- Canada_border %>%
+  filter(Year=='1997' & State == 'Michigan' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+Vermont_2019 <- Canada_border %>%
+  filter(Year=='1998' & State == 'Vermont' & Type == 'People') %>%
+  group_by(Month) %>%
+  summarise(
+    Transporation_via_people = sum(Value)
+  )
+
+```
+
+```{r all-trans-ppl, fig.cap = "Plot of Transporation via People by Month",echo=FALSE,out.width="50%",fig.align='center'}
+ggplot() + 
+  geom_line(data = Maine_1998,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Maine_1998')) + 
+  geom_line(data = Washington_2006,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Washington_2006')) + 
+  geom_line(data = Minnesota_1997,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Minnesota_1997')) +
+  geom_line(data = Idaho_2000,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Idaho_2000' )) +
+  geom_line(data = Michigan_1997,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Michigan_1997' )) +
+  geom_line(data = Vermont_2019,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Vermont_2019' )) +
+  scale_color_manual(name = "Year", values = c("Maine_1998" = "deepskyblue1", "Washington_2006" = "deepskyblue2","Minnesota_1997" = "deepskyblue3", "Idaho_2000" = "deepskyblue4","Michigan_1997" = "steelblue","Vermont_2019" = "darkblue")) +geom_point(aes(x='Nov',y=681595),colour="deepskyblue1")+geom_point(aes(x='Oct',y=1092705),colour="deepskyblue2")+geom_point(aes(x='Jun',y=331095),colour="deepskyblue3") +geom_point(aes(x='May',y=46723),colour="deepskyblue4")+geom_point(aes(x='Dec',y=2193053),colour="steelblue")+geom_point(aes(x='May',y=281528),colour="darkblue") + theme_bw()+ 
+  xlab("Date") +
+  ylab("Number of Crossing")
+```
+
+Subsequently, we aggregated data into seven-year intervals, examining the average transportation volumes for both objects and people in Figure \@ref(fig:avg-trans). Our analysis revealed a pronounced seasonal trend, with peak transportation occurring during the summer and a corresponding underestimation during the winter months.
+
+Additionally, we observed that between 1996 and 2002, the average traffic for both objects and people reached its zenith. Over the subsequent 14 years, a discernible translational decline was noted, followed by a resurgence in traffic from 2017 to 2023.
+
+
+```{r,echo=FALSE}
+Group_1_Ob <- Canada_border %>%
+  filter((Year=='1996'|Year=='1997'|Year=='1998'|Year=='1999'|Year=='2000'|Year=='2001'|Year=='2002')&Type == 'Object' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_2_Ob <- Canada_border %>%
+  filter((Year=='2003'|Year=='2004'|Year=='2005'|Year=='2006'|Year=='2007'|Year=='2008'|Year=='2009')&Type == 'Object' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_3_Ob <- Canada_border %>%
+  filter((Year=='2010'|Year=='2011'|Year=='2012'|Year=='2013'|Year=='2014'|Year=='2015'|Year=='2016')&Type == 'Object' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_4_Ob <- Canada_border %>%
+  filter((Year=='2017'|Year=='2018'|Year=='2019'|Year=='2020'|Year=='2021'|Year=='2022'|Year=='2023')&Type == 'Object' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+```
+```{r,echo=FALSE,out.width="50%",fig.align='center'}
+
+avg_obj <- ggplot() + 
+  geom_line(data = Group_1_Ob,aes(x = Month, y=average_value,group = 1,colour = '1996-2002')) + 
+  geom_line(data = Group_2_Ob,aes(x = Month, y=average_value,group = 1,colour = '2003-2009')) + 
+  geom_line(data = Group_3_Ob,aes(x = Month, y=average_value,group = 1,colour = '2010-2016')) +
+  geom_line(data = Group_4_Ob,aes(x = Month, y=average_value,group = 1,colour = '2017-2023' )) +
+  scale_color_manual(name = "Year Group", values = c("1996-2002" = "deepskyblue1", "2003-2009" = "deepskyblue2","2010-2016" = "deepskyblue3", "2017-2023" = "deepskyblue4")) + ggtitle('Average of crossing in object within 7 years') + ylab('Numbers of Crossing in Object')
+
+```
+
+
+
+```{r,echo=FALSE}
+Group_1_People <- Canada_border %>%
+  filter((Year=='1996'|Year=='1997'|Year=='1998'|Year=='1999'|Year=='2000'|Year=='2001'|Year=='2002')&Type == 'People' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_2_People <- Canada_border %>%
+  filter((Year=='2003'|Year=='2004'|Year=='2005'|Year=='2006'|Year=='2007'|Year=='2008'|Year=='2009')&Type == 'People' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_3_People <- Canada_border %>%
+  filter((Year=='2010'|Year=='2011'|Year=='2012'|Year=='2013'|Year=='2014'|Year=='2015'|Year=='2016')&Type == 'People' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+Group_4_People <- Canada_border %>%
+  filter((Year=='2017'|Year=='2018'|Year=='2019'|Year=='2020'|Year=='2021'|Year=='2022'|Year=='2023')&Type == 'People' ) %>%
+  group_by(Month) %>%
+  summarise(
+    average_value = mean(Value,na.rm = T)
+  )
+
+```
+```{r avg-trans, fig.cap = "Plot of Average Crossing in each 7 years",echo=FALSE,out.width="50%",fig.align='center'}
+
+avg_ppl <- ggplot() + 
+  geom_line(data = Group_1_People,aes(x = Month, y=average_value,group = 1,colour = '1996-2002')) + 
+  geom_line(data = Group_2_People,aes(x = Month, y=average_value,group = 1,colour = '2003-2009')) + 
+  geom_line(data = Group_3_People,aes(x = Month, y=average_value,group = 1,colour = '2010-2016')) +
+  geom_line(data = Group_4_People,aes(x = Month, y=average_value,group = 1,colour = '2017-2023' )) +
+  scale_color_manual(name = "Year Group", values = c("1996-2002" = "deepskyblue1", "2003-2009" = "deepskyblue2","2010-2016" = "deepskyblue3", "2017-2023" = "deepskyblue4")) + ggtitle('Average of crossing in people within 7 years')+ ylab('Numbers of Crossing in People')
+
+gridExtra::grid.arrange( avg_obj, avg_ppl, nrow = 2, ncol = 1)
+
+```
+
+
 ## US-Mexico ports of entry
+
+```{r, include=FALSE}
+library(lubridate)
+library(gridExtra)
+```
+
+
+```{r aggrigate, echo=F, message=F, fig.cap="Sum of people crossing the US and Cannadian border over time. The red line indicates 9/11, gold indicates when Donanld Trump was elected, and purple indicates the start of Covid 19.", fig.align='center', out.width="50%"}
+border %>%
+  filter(Type=="People") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value)) %>%
+  ggplot(aes(x=year + (month-1)/12,y=Value))+
+  geom_line()+
+  # geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
+  geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
+  geom_vline(xintercept=2017+(1-1)/12,color='gold')+ # Trump
+  geom_vline(xintercept=2020+(3-1)/12,color='deepskyblue4')+ # Covid
+  facet_wrap(~Border)+
+  theme_bw()+
+  ggtitle("Agreggate Personal Border Crossings Over Time Faceted by Border")+
+  xlab("Year")+
+  ylab('Number of Crossings')
+```
+Figure \@ref(fig:aggrigate) displays the aggregate pattern from January 1996 to September 2023 for both the Mexican and Canadian border. An important note to remember is that this is the total number of individuals that have crossed the border as opposed to objects. The red lines are potentially significant historical events that may explain certain patterns in the graph.
+
+We can see easily that Covid 19 had a large impact on both Canadian and Mexican border crossings. This is unsurprising since many institutions shut down and border crossing was severely limited. The Presidency of Donald Trump in contrast seemed to have very little if any effect on either border, despite his heavy involvement with the Mexican Border. 9/11 however seemed to have a much more dynamic effect. It has an obvious lasting reduction in Mexican border crossings, yet Canada had nearly now effect from this event. This could be because of any number of reasons, xenophobia not last on the list, however discerning that cause is not possible with the current data.
+
+The story of 9/11 gets even more interesting though on the Mexican border. Two of the largest ports, Calexico in California and El Paso in Texas have a particularly distinguished change in total crossings at the 9/11 timestamp seen in Figure \@ref(fig:ports).
+```{r ports,echo=F,message=F, fig.cap="Sum of people crossing the Mexican border ports Calexico and El Paso over time. The red line indicates 9/11", fig.align='center', out.width="50%"}
+border %>%
+  filter(Type=="People") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(Port_code,Port_name,month,year,Border) %>%
+  summarize(Value=sum(Value)) %>%
+  filter(Port_name=="El Paso"|Port_name=="Calexico") %>%
+  ggplot(aes(x=year + (month-1)/12,y=Value))+
+  geom_line()+
+  geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
+  facet_wrap(~Port_name,scales="free_y")+
+  theme_bw()+
+  ggtitle("Agreggate Personal Border Crossings Over Time in Ports Calexico and El Paso")+
+  xlab("Year")+
+  ylab('Number of Crossings')
+
+```
+
+```{r,include=F}
+filt<-border %>% filter(Type=="People",Border=="US-Mexico Border",
+                        Port_name!="El Paso",Port_name!="Calexico") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value))
+```
+
+```{r reduced,echo=F,message=F, fig.cap="Sum of people crossing the US and Cannadian border over time. The red line indicates 9/11", fig.align='center', out.width="50%"}
+border %>%
+  filter(Type=="People",Border=="US-Mexico Border") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value)) %>%
+  ggplot(aes(x=year + (month-1)/12))+
+  geom_line(aes(y=Value))+
+  geom_line(aes(y=filt$Value),color='deepskyblue3')+
+  # geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
+  geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
+  # geom_vline(xintercept=2011+(11-1)/12,color='red')+ # Guatemala President
+  # geom_vline(xintercept=2017+(1-1)/12,color='red')+ # Trump
+  # geom_vline(xintercept=2020+(3-1)/12,color='red')+ # Covid
+  # facet_wrap(~State,scales="free_y")+
+  theme_bw()+
+  ggtitle("Agreggate Personal Border Crossings Over Time With and Without El Paso\nand Calexico")+
+  xlab("Year")+
+  ylab('Number of Crossings')
+```
+Since these ports are so large, it is reasonable to believe they exert a lot of control over the overall pattern in Figure \@ref(fig:aggrigate). Thus we see a significantly reduced effect of 9/11 when taking out these two ports shown by the blue line in Figure \@ref(fig:reduced). In fact the lasting reduction in border crossings has been almost entirely eliminated, and all that remains is a short dip. This dip seems to be a result of a few different ports, and not as easily explained away. One large example of a port having a short dip is port San Ysidro in California. Just a few ports explain the majority of the difference between pre 9/11 and post 9/11 border crossings implies that an investigation into those two ports could be the most effective way of determining the reason why 9/11 had such a large effect on the Mexican border while having small effect on the Canadian one.
+
+It is also worth noting that there are other smaller ports that exhibit the same phenomenon as El Paso and Calexico. However they are so small that their addition to the list of removed ports barely changes pattern at all. One example of this is port Roma in Texas. This means that using Calexico and El Paso to explain the 9/11 effect should not be treated as comprehensive, but as the dominant locations of the effect.
 
 ## Temporal trends and analysis
 
@@ -269,13 +625,11 @@ border %>% filter(Port_name == "San Ysidro", Value == 0, Measure == "Personal Ve
 ```
 
 
-# Conclusion
+# Conclusion & Future Work
 <!-- Conclusions follows logically from results and findings. Includes interesting further questions and ideas for future research. -->
 
-## Summary of Findings
+Overall, through our analysis we gleamed that the US-Canada appears to be very cyclic, whereas the US-Mexico border appears to be very volatile and possibly subject to international events and some US foreign policy. The time series analysis showcases that major events had different but similar effects on both borders. 
 
-## Future Work
-
-One possible venture for future work is distinguishingbetween commercial and private traffic. There are some issues with it possibly being confounded in the data set, such as passenger trains and freight trains both being counted as 'trains'. However, we may be able to investigate the flow of imports and exports by comparing empty truck and rail containers (exports) with loaded truck and rail containers. 
+One possible venture for future work is distinguishing between commercial and private traffic. There are some issues with it possibly being confounded in the data set, such as passenger trains and freight trains both being counted as 'trains'. However, we may be able to investigate the flow of imports and exports by comparing empty truck and rail containers (exports) with loaded truck and rail containers. 
 
 <!-- Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. -->
