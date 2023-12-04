@@ -1,0 +1,99 @@
+---
+title: "Best Findings for Border X-ing Data"
+author: "Rebekah Scott"
+date: "2023-11-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+load("C:/Users/rebek/github/packages/borderxing/data/border_clean.Rdata")
+# load("data/border_clean.Rdata")
+library(tidyverse)
+```
+
+
+## General Information 
+
+This data set is from the Bureau of Transportation Statistics website, under Border Crossing / Entry Data. 
+<https://www.bts.gov/browse-statistical-products-and-data/border-crossing-data/border-crossingentry-data>.  It consists of monthly counts of people and different imports coming into the United State across the its land borders - Canada and Mexico. Data were collected at ports of entry by US Customs and Border Protection (CBP).
+
+
+Some simple summary statistics about the border crossings (called ports of entry) in our data set. 
+
+```{r}
+# number of unique ports 
+border %>% select(Port_name) %>% unique() %>% count()
+# number of Canadian ports 
+border %>% filter(Border == "US-Canada Border") %>% select(Port_name) %>% unique() %>% count()
+# number of Mexican ports 
+border %>% filter(Border == "US-Mexico Border") %>% select(Port_name) %>% unique() %>% count()
+```
+
+There are 117 ports of entry, with 89 of them on the US-Canada Border and the remaining 28 on the US-Mexico Border. 
+
+
+```{r}
+border %>% select(Year) %>% unique() %>% count()
+
+border %>% select(Year) %>% min()
+
+```
+
+This data set ranges from January 1996 to September 2023 (since data is updated / uploaded quarterly). 
+
+
+```{r}
+border %>% select(Measure) %>% unique()
+```
+
+There are 12 different measures, which we further categorized into being an object or people count. 
+
+```{r}
+border %>% group_by(Port_name) %>% 
+  summarise(n = n()) %>% filter(n < 100)
+```
+
+Most ports of entry have over 100 entries in our data set, but three ports have less than 100. Interesting, Anchorage only has one entry and is quite distant from the US-Canadian border in Alaska. 
+
+## Maps and visuals 
+
+
+```{r pressure, echo=FALSE}
+stations <- unique(border %>% select(Port_code, Port_name, Longitude, Latitude))  
+
+library(leaflet)
+
+leaflet(stations) %>%
+  addTiles() %>%
+  addCircleMarkers(~Longitude, ~Latitude, popup=~Port_name, radius=3)
+```
+
+Here is a plot of the differnt border crossing station locations. 
+
+
+```{r}
+border %>%
+  ggplot(aes(x = Port_name, y = Value, fill = Measure)) + 
+  geom_bar(stat = "identity") + coord_flip()
+```
+
+We can visualize the most heavily trafficked ports. 
+
+```{r}
+border %>% # filter(Border == "US-Mexico Border") %>% 
+  ggplot(aes(x = reorder(Port_name, as.numeric(Measure), na.rm = TRUE), fill = Measure)) + 
+  geom_bar(position = "fill") + coord_flip()
+```
+
+And look at the distribution the percentage of which types of people or objects are coming into the United States. 
+
+## Questions 
+-What's going on with passenger trains in Mexico? Did we used to have them? 
+-Can we pick out which ports are more commercially focused? Or which are more just daily commuters? 
+-Can we distinguish between commercial and private traffic? Or is it confounded (passenger trains vs freight trains)
+-Investigating imports and exports by truck containers? 
+-Can we see major events like September 11th in 2001 or COVID in March of 2020? How do the two borders behave relative to each other. 

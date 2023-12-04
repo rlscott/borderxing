@@ -13,9 +13,9 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```{r, include = FALSE}
 # load the data with the here package, more at https://here.r-lib.org/
-here::i_am("r_writeup_draft.Rmd") # establish where this document is
+here::i_am("writeup_draft.Rmd") # establish where this document is
 # here::here("../../data/border_clean.Rdata") # make a path to where the data is
-load(here::here("../../data/border_clean.Rdata")) # load the data
+load(here::here("../data/border_clean.Rdata")) # load the data
 ```
 
 
