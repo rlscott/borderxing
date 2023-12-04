@@ -2,7 +2,7 @@
 title: "Canada_border_PDF"
 author: "Min-Yi Chen"
 date: "2023-11-30"
-output: pdf_document
+output: bookdown::html_document2
 ---
 
 ```{r setup, include=FALSE}
@@ -32,13 +32,13 @@ Canada_border <- border %>%
 
 # Bus Transporation
 
-We have identified outliers in the scatter plot related to Buses Transportation. Notably, in November 1999, Port Sweetgrass recorded a significantly higher count of 1375 instances of bus transportation. Conversely, in June 2021, Port Limestone reported a comparatively lower count of 173 instances of bus transportation.
+We have identified outliers in the scatter plot related to Buses Transportation in Figure \@ref(fig:bus-object). Notably, in November 1999, Port Sweetgrass recorded a significantly higher count of 1375 instances of bus transportation. Conversely, in June 2021, Port Limestone reported a comparatively lower count of 173 instances of bus transportation.
 
-```{r,echo=FALSE,out.width="50%",fig.align='center'}
+```{r bus-object, fig.cap = "Numbers of Crossing of Object by State",echo=FALSE,out.width="50%",fig.align='center'}
 Canada_border %>%
   filter(Measure == 'Buses' & Type == 'Object')%>%
   group_by(State) %>%
-  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_point()+facet_wrap(~State,scales = 'free_y') +
+  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_point(colour = "deepskyblue4")+facet_wrap(~State,scales = 'free_y') +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   geom_point(data=Canada_border %>%
              filter(Measure == 'Buses' & Type == 'Object' & State == 'Montana' & Value == 1375),
@@ -48,13 +48,15 @@ Canada_border %>%
              filter(Measure == 'Buses' & Type == 'Object' & State == 'Maine' & Value == 173),
              pch = 24,
              size=4, 
-             colour = "red") 
+             colour = "red")+scale_color_brewer(type = "seq", palette = "Blues") + theme_bw() + 
+  xlab("Date") +
+  ylab("Number of Crossing")
 
 ```
 
-We conducted an analysis of the total object transportation for the year 1999 in Montana and the year 2021 in Maine. Upon pinpointing specific months within each year on the plot, it becomes evident that these data points do not align with the peak of the plot. This observation suggests that bus transportation may serve as an alternative choice, particularly when other modes of transportation prove impractical for individuals crossing the border.
+We conducted an analysis of the total object transportation for the year 1999 in Montana and the year 2021 in Maine. Upon pinpointing specific months within each year in Figure \@ref(fig:all-trans-object), it becomes evident that these data points do not align with the peak of the plot. This observation suggests that bus transportation may serve as an alternative choice, particularly when other modes of transportation prove impractical for individuals crossing the border.
 
-```{r,echo=FALSE,out.width="50%",fig.align='center'}
+```{r all-trans-object, fig.cap = "Plot of Transporation_via_object by Month",echo=FALSE,out.width="50%",fig.align='center'}
 
 Montana_1999<- Canada_border %>%
   filter(Year == '1999' & State == 'Montana' & Type == 'Object')%>%
@@ -73,11 +75,11 @@ Maine_2021<- Canada_border %>%
 ggplot() + 
   geom_line(data = Montana_1999,aes(x = Month, y=Transporation_via_object,group = 1,colour = 'Montana_1999')) + 
   geom_line(data = Maine_2021,aes(x = Month, y=Transporation_via_object,group = 1,colour = 'Maine_2021'))+
-  scale_color_manual(name = "Year", values = c("Montana_1999" = "steelblue", "Maine_2021" = "coral2"))+geom_point(aes(x='Jun',y=70976),colour="coral2")+geom_point(aes(x='Nov',y=70074),colour="steelblue")+ ggtitle("Plot of Transporation_via_object by Month")
+  scale_color_manual(name = "Year", values = c("Montana_1999" = "deepskyblue3", "Maine_2021" = "deepskyblue4"))+geom_point(aes(x='Jun',y=70976),colour="deepskyblue4")+geom_point(aes(x='Nov',y=70074),colour="deepskyblue3") + theme_bw() + ylab('Numbers of Crossing with Obejct') 
 
 ```
 
-In order to validate our hypothesis, we conducted an examination of Bus Passengers transportation across states, revealing six outliers in the scatter plot. These outliers are as follows:
+In order to validate our hypothesis, we conducted an examination of Bus Passengers transportation across states, revealing six outliers in Figure \@ref(fig:bus-ppl). These outliers are as follows:
 
 * 46712 Bus Passengers in November 1998 in Maine at Port Jackman
 * 159086 Bus Passengers in October 159086 in Washington at Port Blaine
@@ -89,11 +91,11 @@ In order to validate our hypothesis, we conducted an examination of Bus Passenge
 These instances, deviating significantly from the norm, warrant further investigation and may provide insights into the dynamics of bus transportation across state borders.
 
 
-```{r,echo=FALSE,out.width="50%",fig.align='center'}
+```{r bus-ppl, fig.cap = "Numbers of Crossing of People by State",echo=FALSE,out.width="50%",fig.align='center'}
 Canada_border %>%
   filter(Measure == 'Bus Passengers' & Type == 'People')%>%
   group_by(State) %>%
-  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_point()+facet_wrap(~State,scales = 'free_y')+
+  ggplot(aes(x = year + (month-1)/12, y=Value))+geom_point(colour = "deepskyblue4")+facet_wrap(~State,scales = 'free_y')+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   geom_point(data=Canada_border %>%
              filter(Measure == 'Bus Passengers' & Type == 'People' & State == 'Maine' & Value == 46712 & Year == '1998'),
@@ -124,14 +126,16 @@ Canada_border %>%
              filter(Measure == 'Bus Passengers' & Type == 'People' & State == 'Vermont' & Value == 19322 & Year == '2019'),
              pch = 24,
              size=4, 
-             colour = "red")
+             colour = "red") + theme_bw()+ 
+  xlab("Date") +
+  ylab("Number of Crossing")
 
 ```
 
-Upon isolating the specific months within the annual plot of total transportation via people, we observed that the identified outliers in both Buses and Bus Passengers transportation did not coincide with the peak of the plot. This outcome substantiates our initial assumption that bus transportation serves as an alternative choice, particularly when conventional transportation methods prove impractical for individuals crossing the border. Further analysis indicates that these outliers are not attributed to significant events, reinforcing the notion that the observed deviations in Buses/Bus Passengers transportation are likely driven by individual travel choices rather than external factors.
+Upon isolating the specific months within the annual plot of total transportation via people in Figure \@ref(fig:all-trans-ppl), we observed that the identified outliers in both Buses and Bus Passengers transportation did not coincide with the peak of the plot. This outcome substantiates our initial assumption that bus transportation serves as an alternative choice, particularly when conventional transportation methods prove impractical for individuals crossing the border. Further analysis indicates that these outliers are not attributed to significant events, reinforcing the notion that the observed deviations in Buses/Bus Passengers transportation are likely driven by individual travel choices rather than external factors.
 
 
-```{r,echo=FALSE}
+```{r ,echo=FALSE}
 
 Maine_1998 <- Canada_border %>%
   filter(Year=='1998' & State == 'Maine' & Type == 'People') %>%
@@ -177,7 +181,7 @@ Vermont_2019 <- Canada_border %>%
 
 ```
 
-```{r,echo=FALSE,out.width="50%",fig.align='center'}
+```{r all-trans-ppl, fig.cap = "Plot of Transporation_via_people by Month",echo=FALSE,out.width="50%",fig.align='center'}
 ggplot() + 
   geom_line(data = Maine_1998,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Maine_1998')) + 
   geom_line(data = Washington_2006,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Washington_2006')) + 
@@ -185,10 +189,12 @@ ggplot() +
   geom_line(data = Idaho_2000,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Idaho_2000' )) +
   geom_line(data = Michigan_1997,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Michigan_1997' )) +
   geom_line(data = Vermont_2019,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Vermont_2019' )) +
-  scale_color_manual(name = "Year", values = c("Maine_1998" = "steelblue", "Washington_2006" = "coral2","Minnesota_1997" = "darkgreen", "Idaho_2000" = "orange","Michigan_1997" = "purple","Vermont_2019" = "darkblue")) +geom_point(aes(x='Nov',y=681595),colour="steelblue")+geom_point(aes(x='Oct',y=1092705),colour="coral2")+geom_point(aes(x='Jun',y=331095),colour="darkgreen") +geom_point(aes(x='May',y=46723),colour="orange")+geom_point(aes(x='Dec',y=2193053),colour="purple")+geom_point(aes(x='May',y=281528),colour="darkblue") + ggtitle('Plot of Transporation_via_people by Month')
+  scale_color_manual(name = "Year", values = c("Maine_1998" = "deepskyblue1", "Washington_2006" = "deepskyblue2","Minnesota_1997" = "deepskyblue3", "Idaho_2000" = "deepskyblue4","Michigan_1997" = "steelblue","Vermont_2019" = "darkblue")) +geom_point(aes(x='Nov',y=681595),colour="deepskyblue1")+geom_point(aes(x='Oct',y=1092705),colour="deepskyblue2")+geom_point(aes(x='Jun',y=331095),colour="deepskyblue3") +geom_point(aes(x='May',y=46723),colour="deepskyblue4")+geom_point(aes(x='Dec',y=2193053),colour="steelblue")+geom_point(aes(x='May',y=281528),colour="darkblue") + theme_bw()+ 
+  xlab("Date") +
+  ylab("Number of Crossing")
 ```
 
-Subsequently, we aggregated data into seven-year intervals, examining the average transportation volumes for both objects and people. Our analysis revealed a pronounced seasonal trend, with peak transportation occurring during the summer and a corresponding underestimation during the winter months.
+Subsequently, we aggregated data into seven-year intervals, examining the average transportation volumes for both objects and people in Figure \@ref(fig:avg-trans). Our analysis revealed a pronounced seasonal trend, with peak transportation occurring during the summer and a corresponding underestimation during the winter months.
 
 Additionally, we observed that between 1996 and 2002, the average traffic for both objects and people reached its zenith. Over the subsequent 14 years, a discernible translational decline was noted, followed by a resurgence in traffic from 2017 to 2023.
 
@@ -225,12 +231,12 @@ Group_4_Ob <- Canada_border %>%
 ```
 ```{r,echo=FALSE,out.width="50%",fig.align='center'}
 
-ggplot() + 
+avg_obj <- ggplot() + 
   geom_line(data = Group_1_Ob,aes(x = Month, y=average_value,group = 1,colour = '1996-2002')) + 
   geom_line(data = Group_2_Ob,aes(x = Month, y=average_value,group = 1,colour = '2003-2009')) + 
   geom_line(data = Group_3_Ob,aes(x = Month, y=average_value,group = 1,colour = '2010-2016')) +
   geom_line(data = Group_4_Ob,aes(x = Month, y=average_value,group = 1,colour = '2017-2023' )) +
-  scale_color_manual(name = "Year Group", values = c("1996-2002" = "steelblue", "2003-2009" = "coral2","2010-2016" = "green", "2017-2023" = "orange")) + ggtitle('Average of transportation in object within 7 years')
+  scale_color_manual(name = "Year Group", values = c("1996-2002" = "deepskyblue1", "2003-2009" = "deepskyblue2","2010-2016" = "deepskyblue3", "2017-2023" = "deepskyblue4")) + ggtitle('Average of crossing in object within 7 years') + ylab('Numbers of Crossing in Object')
 
 ```
 
@@ -266,13 +272,15 @@ Group_4_People <- Canada_border %>%
   )
 
 ```
-```{r,echo=FALSE,out.width="50%",fig.align='center'}
+```{r avg-trans, fig.cap = "Plot of Average Crossing in each 7 years",echo=FALSE,out.width="50%",fig.align='center'}
 
-ggplot() + 
+avg_ppl <- ggplot() + 
   geom_line(data = Group_1_People,aes(x = Month, y=average_value,group = 1,colour = '1996-2002')) + 
   geom_line(data = Group_2_People,aes(x = Month, y=average_value,group = 1,colour = '2003-2009')) + 
   geom_line(data = Group_3_People,aes(x = Month, y=average_value,group = 1,colour = '2010-2016')) +
   geom_line(data = Group_4_People,aes(x = Month, y=average_value,group = 1,colour = '2017-2023' )) +
-  scale_color_manual(name = "Year Group", values = c("1996-2002" = "steelblue", "2003-2009" = "coral2","2010-2016" = "green", "2017-2023" = "orange")) + ggtitle('Average of transportation in people within 7 years')
+  scale_color_manual(name = "Year Group", values = c("1996-2002" = "deepskyblue1", "2003-2009" = "deepskyblue2","2010-2016" = "deepskyblue3", "2017-2023" = "deepskyblue4")) + ggtitle('Average of crossing in people within 7 years')+ ylab('Numbers of Crossing in People')
+
+gridExtra::grid.arrange( avg_obj, avg_ppl, nrow = 2, ncol = 1)
 
 ```
