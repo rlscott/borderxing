@@ -455,7 +455,7 @@ Canada_border %>%
 
 ---
 
-We observed that the identified outliers in both Buses and Bus Passengers transportation did not coincide with the peak of the plot.
+We observed that the identified outliers in both buses and bus passengers transportation did not coincide with the peak of the plot.
 
 
 ```{r ,echo=FALSE}
@@ -519,13 +519,13 @@ ggplot() +
 
 ---
 
-# Seasonal Treand
+# Seasonal Trend
 
 By aggregating data into seven-year intervals, examining the average transportation volumes for both objects and people. We found :
 
 - Seasonal Trend
 
-- Reach it's zenith - Translational decline - Bounced back
+- Reach it's zenith - transitional decline - bounced back
 
 ```{r,echo=FALSE}
 Group_1_Ob <- Canada_border %>%
