@@ -525,7 +525,7 @@ By aggregating data into seven-year intervals, examining the average transportat
 
 - Seasonal Trend
 
-- Reach it's zenith - transitional decline - bounced back
+- Reach it's zenith - downward shift - bounced back
 
 ```{r,echo=FALSE}
 Group_1_Ob <- Canada_border %>%

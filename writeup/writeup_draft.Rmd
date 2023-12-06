@@ -57,7 +57,7 @@ Additionally, we also cleaned our data by distinguishing between two ports on th
 
 All of these changes while cleaning our border data resulted in the following structure: 
 
-```{r}
+```{r, out.width="50%"}
 DT::datatable(
   head(border[-c(3, 6, 7, 10, 11, 12, 13)], 10),
   fillContainer = FALSE, options = list(pageLength = 5)
@@ -80,7 +80,7 @@ border %>% select(State, Border) %>% unique() %>% group_by(Border) %>% summarise
 Figure \@ref(fig:all-map) shows the location of each border crossing station mapped by latitude and longitude. This interactive map was created using the leaflet package. Ankoridge is not included in this map since its coordinates are missing from the data (more about this port will be discussed later).
 
 <!-- a map of the crossings -->
-```{r all-map, fig.cap = "Map of the 118 US Border Ports of Entry", fig.align='center'}
+```{r all-map, fig.cap = "Map of the 118 US Border Ports of Entry", fig.align='center', out.width="70%"}
 
 stations <- unique(border %>% select(Port_code, Port_name, Longitude, Latitude) %>% filter(Port_name != "Anchorage")) 
 
@@ -405,7 +405,7 @@ ggplot() +
   geom_line(data = Vermont_2019,aes(x = Month, y=Transporation_via_people,group = 1,colour = 'Vermont_2019' )) +
   scale_color_manual(name = "Year", values = c("Maine_1998" = "deepskyblue1", "Washington_2006" = "deepskyblue2","Minnesota_1997" = "deepskyblue3", "Idaho_2000" = "deepskyblue4","Michigan_1997" = "steelblue","Vermont_2019" = "darkblue")) +geom_point(aes(x='Nov',y=681595),colour="deepskyblue1")+geom_point(aes(x='Oct',y=1092705),colour="deepskyblue2")+geom_point(aes(x='Jun',y=331095),colour="deepskyblue3") +geom_point(aes(x='May',y=46723),colour="deepskyblue4")+geom_point(aes(x='Dec',y=2193053),colour="steelblue")+geom_point(aes(x='May',y=281528),colour="darkblue") + theme_bw()+ 
   xlab("Date") +
-  ylab("Number of Crossing")
+  ylab("Number of Crossing") 
 ```
 
 Subsequently, we aggregated data into seven-year intervals, examining the average transportation volumes for both objects and people in Figure \@ref(fig:avg-trans). Our analysis revealed a pronounced seasonal trend, with peak transportation occurring during the summer and a corresponding underestimation during the winter months.
@@ -450,7 +450,7 @@ avg_obj <- ggplot() +
   geom_line(data = Group_2_Ob,aes(x = Month, y=average_value,group = 1,colour = '2003-2009')) + 
   geom_line(data = Group_3_Ob,aes(x = Month, y=average_value,group = 1,colour = '2010-2016')) +
   geom_line(data = Group_4_Ob,aes(x = Month, y=average_value,group = 1,colour = '2017-2023' )) +
-  scale_color_manual(name = "Year Group", values = c("1996-2002" = "deepskyblue1", "2003-2009" = "deepskyblue2","2010-2016" = "deepskyblue3", "2017-2023" = "deepskyblue4")) + ggtitle('Average of crossing in object within 7 years') + ylab('Numbers of Crossing in Object')
+  scale_color_manual(name = "Year Group", values = c("1996-2002" = "deepskyblue1", "2003-2009" = "deepskyblue2","2010-2016" = "deepskyblue3", "2017-2023" = "deepskyblue4")) + ggtitle('Average of crossing in object within 7 years') + ylab('Numbers of Crossing in Object') + theme_bw()
 
 ```
 
@@ -493,7 +493,7 @@ avg_ppl <- ggplot() +
   geom_line(data = Group_2_People,aes(x = Month, y=average_value,group = 1,colour = '2003-2009')) + 
   geom_line(data = Group_3_People,aes(x = Month, y=average_value,group = 1,colour = '2010-2016')) +
   geom_line(data = Group_4_People,aes(x = Month, y=average_value,group = 1,colour = '2017-2023' )) +
-  scale_color_manual(name = "Year Group", values = c("1996-2002" = "deepskyblue1", "2003-2009" = "deepskyblue2","2010-2016" = "deepskyblue3", "2017-2023" = "deepskyblue4")) + ggtitle('Average of crossing in people within 7 years')+ ylab('Numbers of Crossing in People')
+  scale_color_manual(name = "Year Group", values = c("1996-2002" = "deepskyblue1", "2003-2009" = "deepskyblue2","2010-2016" = "deepskyblue3", "2017-2023" = "deepskyblue4")) + ggtitle('Average of crossing in people within 7 years')+ ylab('Numbers of Crossing in People') + theme_bw()
 
 gridExtra::grid.arrange( avg_obj, avg_ppl, nrow = 2, ncol = 1)
 
