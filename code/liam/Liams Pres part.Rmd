@@ -1,0 +1,115 @@
+---
+title: "Presentation Ninja"
+subtitle: "⚔<br/>with xaringan"
+author: "Yihui Xie"
+institute: "RStudio, PBC"
+date: "2016/12/12 (updated: `r Sys.Date()`)"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+```{r, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(ggpubr)
+```
+```{r, include=FALSE}
+# load the data with the here package, more at https://here.r-lib.org/
+here::i_am("Border Writen.Rmd") # establish where this document is
+here::here()
+# here::here("../../data/border_clean.Rdata") # make a path to where the data is
+load(here::here("../../data/border_clean.Rdata")) # load the data
+
+# load("data/border_clean.Rdata")
+```
+
+# Agriggate Boder Crossings Over Time
+```{r aggrigate, echo=F, message=F, fig.height=6,fig.align="center", fig.cap="Sum of people crossing the US and Cannadian border over time. The red line indicates 9/11, gold indicates when Donanld Trump was elected, and purple indicates the start of Covid 19." }
+
+border %>%
+  filter(Type=="People") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value)) %>%
+  ggplot(aes(x=year + (month-1)/12,y=Value))+
+  geom_line()+
+  # geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
+  geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
+  geom_vline(xintercept=2017+(1-1)/12,color='gold')+ # Trump
+  geom_vline(xintercept=2020+(3-1)/12,color='deepskyblue4')+ # Covid
+  facet_wrap(~Border)+
+  theme_bw()+
+  ggtitle("Agreggate Personal Border Crossings Over Time Faceted by Border")+
+  xlab("Year")+
+  ylab('Number of Crossings')
+```
+
+---
+
+# Calexico and El Paso
+```{r, echo=F, message=F, fig.height=6,fig.align="center", fig.cap="The red line indicates 9/11"}
+border %>%
+  filter(Type=="People") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(Port_code,Port_name,month,year,Border) %>%
+  summarize(Value=sum(Value)) %>%
+  filter(Port_name=="El Paso"|Port_name=="Calexico") %>%
+  ggplot(aes(x=year + (month-1)/12,y=Value))+
+  geom_line()+
+  geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
+  facet_wrap(~Port_name,scales="free_y")+
+  theme_bw()+
+  ggtitle("Agreggate Personal Border Crossings Over Time in Ports Calexico and El Paso")+
+  xlab("Year")+
+  ylab('Number of Crossings')
+
+```
+
+---
+# Removing Ports
+
+```{r,include=F}
+filt<-border %>% filter(Type=="People",Border=="US-Mexico Border",
+                        Port_name!="El Paso",Port_name!="Calexico") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value))
+```
+```{r reduced,echo=F,message=F,fig.height=6, fig.align="center", fig.cap="The red line indicates 9/11"}
+border %>%
+  filter(Type=="People",Border=="US-Mexico Border") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value)) %>%
+  ggplot(aes(x=year + (month-1)/12))+
+  geom_line(aes(y=Value))+
+  geom_line(aes(y=filt$Value),color='deepskyblue3')+
+  # geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
+  geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
+  # geom_vline(xintercept=2011+(11-1)/12,color='red')+ # Guatemala President
+  # geom_vline(xintercept=2017+(1-1)/12,color='red')+ # Trump
+  # geom_vline(xintercept=2020+(3-1)/12,color='red')+ # Covid
+  # facet_wrap(~State,scales="free_y")+
+  theme_bw()+
+  ggtitle("Agreggate Personal Border Crossings Over Time With and Without El Paso\nand Calexico")+
+  xlab("Year")+
+  ylab('Number of Crossings')
+```
+
+
