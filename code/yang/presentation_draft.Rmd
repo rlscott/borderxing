@@ -15,8 +15,8 @@ output:
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(echo = FALSE)
-here::i_am("presentation_draft.Rmd")
-load(here::here("../data/border_clean.Rdata")) # load the data
+#here::i_am("presentation_draft.Rmd")
+load("/Users/yangzihao/Desktop/borderxing/data/border_clean.Rdata") # load the data
 library(tidyverse)
 ```
 
@@ -24,7 +24,7 @@ library(tidyverse)
 <!-- ![Border Crossing Sign at US-Mexico border in El Passo, TX. June 2023.](mexico.jpg) -->
 
 ```{r el-passo"}
-knitr::include_graphics(here::here("mexico.jpg"))
+knitr::include_graphics("/Users/yangzihao/Desktop/borderxing/writeup/mexico.jpg")
 ```
 
 Border Crossing Sign at US-Mexico border in El Passo, Texas - June 2023
@@ -223,95 +223,11 @@ class: inverse, center, middle
 
 # US-Mexico Border - Liam
 
-
-```{r, include = FALSE}
-library(lubridate)
-library(ggpubr)
-```
-
-
----
-# Agriggate Boder Crossings Over Time
-```{r aggrigate, echo=F, message=F, fig.height=6,fig.align="center", fig.cap="Sum of people crossing the US and Cannadian border over time. The red line indicates 9/11, gold indicates when Donanld Trump was elected, and purple indicates the start of Covid 19." }
-
-border %>%
-  filter(Type=="People") %>%
-  mutate(date=lubridate::my(Date),
-         month=month(date),
-         year=year(date)) %>%
-  group_by(month,year,Border) %>%
-  summarize(Value=sum(Value)) %>%
-  ggplot(aes(x=year + (month-1)/12,y=Value))+
-  geom_line()+
-  # geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
-  geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
-  geom_vline(xintercept=2017+(1-1)/12,color='gold')+ # Trump
-  geom_vline(xintercept=2020+(3-1)/12,color='deepskyblue4')+ # Covid
-  facet_wrap(~Border)+
-  theme_bw()+
-  ggtitle("Agreggate Personal Border Crossings Over Time Faceted by Border")+
-  xlab("Year")+
-  ylab('Number of Crossings')
-```
-
 ---
 
-# Calexico and El Paso
-```{r, echo=F, message=F, fig.height=6,fig.align="center", fig.cap="The red line indicates 9/11"}
-border %>%
-  filter(Type=="People") %>%
-  mutate(date=lubridate::my(Date),
-         month=month(date),
-         year=year(date)) %>%
-  group_by(Port_code,Port_name,month,year,Border) %>%
-  summarize(Value=sum(Value)) %>%
-  filter(Port_name=="El Paso"|Port_name=="Calexico") %>%
-  ggplot(aes(x=year + (month-1)/12,y=Value))+
-  geom_line()+
-  geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
-  facet_wrap(~Port_name,scales="free_y")+
-  theme_bw()+
-  ggtitle("Agreggate Personal Border Crossings Over Time in Ports Calexico and El Paso")+
-  xlab("Year")+
-  ylab('Number of Crossings')
+# Liam stuff
 
-```
-
----
-# Removing Ports
-
-```{r,include=F}
-filt<-border %>% filter(Type=="People",Border=="US-Mexico Border",
-                        Port_name!="El Paso",Port_name!="Calexico") %>%
-  mutate(date=lubridate::my(Date),
-         month=month(date),
-         year=year(date)) %>%
-  group_by(month,year,Border) %>%
-  summarize(Value=sum(Value))
-```
-```{r reduced,echo=F,message=F,fig.height=6, fig.align="center", fig.cap="The red line indicates 9/11"}
-border %>%
-  filter(Type=="People",Border=="US-Mexico Border") %>%
-  mutate(date=lubridate::my(Date),
-         month=month(date),
-         year=year(date)) %>%
-  group_by(month,year,Border) %>%
-  summarize(Value=sum(Value)) %>%
-  ggplot(aes(x=year + (month-1)/12))+
-  geom_line(aes(y=Value))+
-  geom_line(aes(y=filt$Value),color='deepskyblue3')+
-  # geom_vline(xintercept=1996+(12-1)/12,color='red')+ # end guatemala civil war
-  geom_vline(xintercept=2001+(9-1)/12,color='red')+ # sep 11
-  # geom_vline(xintercept=2011+(11-1)/12,color='red')+ # Guatemala President
-  # geom_vline(xintercept=2017+(1-1)/12,color='red')+ # Trump
-  # geom_vline(xintercept=2020+(3-1)/12,color='red')+ # Covid
-  # facet_wrap(~State,scales="free_y")+
-  theme_bw()+
-  ggtitle("Agreggate Personal Border Crossings Over Time With and Without El Paso\nand Calexico")+
-  xlab("Year")+
-  ylab('Number of Crossings')
-```
-
+Hi there
 
 ---
 class: inverse, center, middle
@@ -628,6 +544,7 @@ class: inverse, center, middle
 - Time series data related to the value of Mexico border.
 
 ```{r tsMexico,fig.align='center',out.width="60%",out.height=195,echo=F, message=F}
+library(tidyverse)
 Mexico_border <- border %>%
   filter(Border == "US-Mexico Border") %>%
   mutate(
@@ -683,7 +600,7 @@ Canada_decomposed_series <- decompose(Canada_time_series, type = "additive")
 Canada_season <- Canada_decomposed_series$seasonal[1:12]
 ```
 - Comparison between the seasonal components of two borders.
-```{r tscompare,fig.align='center', out.width="50%",out.height=240,echo=F, message=F, warning = F}
+```{r tscompare,fig.align='center', out.width="50%",out.height=240,echo=F, message=F}
 year <- 0
 start_date <- as.Date(paste(year, "-01-01", sep = ""))
 end_date <- as.Date(paste(year, "-12-31", sep = ""))
@@ -728,7 +645,7 @@ line1 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(133
 line2 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(10848047,28613279))
 p2 <- p1 + geom_hline(aes(yintercept = wt),line1, color = 'skyblue4')
 p2 + geom_hline(aes(yintercept = wt),line2, color = 'darkolivegreen3')+
-  ggtitle("September 11th")
+  ggtitle("911")
 ```
 - The impact of the COVID-19
 ```{r impactcovid,fig.align='center',out.width="70%", out.height=240,echo=F, message=F}
@@ -756,12 +673,12 @@ line3 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(709
 line4 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(1818274,16060812))
 p4 <- p3 + geom_hline(aes(yintercept = wt),line3, color = 'skyblue4')
 p4 + geom_hline(aes(yintercept = wt),line4, color = 'darkolivegreen3')+
-  ggtitle("COVID-19")
+  ggtitle("Covid")
 
 ```
 ---
-# Comparison of object crossing
-- Comparison of Buffalo Niagara Falls, Detroit and El Paso
+# Comparison of object
+-Comparison of Buffalo Niagara Falls, Detroit and El Paso
 ```{r bar,fig.align='center',echo=F, message=F}
 border1 <- border
 border1$Date <- as.Date(paste0("01 ", border1$Date), format = "%d %b %Y")
@@ -776,11 +693,11 @@ border1 %>%
   theme_bw()+
   facet_wrap(~Measure, scales = "free_y")+
   theme(axis.text.x = element_text(angle = 30, hjust = 1))+
-  xlab("Port name") + ylab("Number of Crossings")
+  xlab("Port_Name")
 ```
 
----
 
+---
 class: inverse
 
 # Questions? 
@@ -792,3 +709,4 @@ Future work / areas to explore:
 <br/>
 
 Thank you for listening to our presentation! 
+

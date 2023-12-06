@@ -58,8 +58,10 @@ Additionally, we also cleaned our data by distinguishing between two ports on th
 All of these changes while cleaning our border data resulted in the following structure: 
 
 ```{r}
-# look at the str of dataset
-str(border)
+DT::datatable(
+  head(border[-c(3, 6, 7, 10, 11, 12, 13)], 10),
+  fillContainer = FALSE, options = list(pageLength = 5)
+)
 ```
 
 # Curiosity 
@@ -622,7 +624,7 @@ a <- data.frame(month1 = dates, Mexico_value = Mexico_season)
 a$month1 <- as.Date(a$month1)
 ```
 
-Figure \@ref(fig:tsMexico) shows the value of the Mexico border vs time. We utilize the 'additive' method to decompose the population data at the Mexico border, dividing it into three components: trend, season, and random parts. Our focus for this project lies in analyzing the seasonal component.
+Figure \@ref(fig:tsMexico) shows the number of crossings on the Mexico border over time. We utilize the 'additive' method to decompose the population data at the Mexico border, dividing it into three components: trend, season, and random parts. Our focus for this project lies in analyzing the seasonal component.
 
 ```{r tsCanada,fig.align='center',out.width="40%", echo=F, message=F, fig.cap="Time series data related to the value of Canada border."}
 Canada_value <- Canada_border %>%
@@ -637,8 +639,8 @@ Canada_value %>%
   ggplot(aes(x = Date$Date, y = Value)) +
   geom_line(color = "skyblue2") +
   theme_bw()+
-  labs(title = "Value vs. Date",
-       x = "Date",
+  labs(title = "Value vs. Month",
+       x = "Month",
        y = "Value") 
 Canada_time_series <- ts(data = Canada_value$Value, frequency = 12)
 Canada_decomposed_series <- decompose(Canada_time_series, type = "additive")
@@ -647,7 +649,7 @@ Canada_season <- Canada_decomposed_series$seasonal[1:12]
 
 Figure \@ref(fig:tsCanada) shows the value of the Canada border vs time. We utilize the 'additive' method to decompose the population data at the Canada border, dividing it into three components: trend, season, and random parts. Our focus for this project lies in analyzing the seasonal component.
 
-```{r tscompare,fig.align='center', out.width="50%",echo=F, message=F, fig.cap="Comparison between the seasonal components of two borders."}
+```{r tscompare,fig.align='center', out.width="50%",echo=F, message=F, fig.cap="Comparison between the seasonal components of two borders.", warning = FALSE}
 year <- 0
 start_date <- as.Date(paste(year, "-01-01", sep = ""))
 end_date <- as.Date(paste(year, "-12-31", sep = ""))
@@ -661,14 +663,13 @@ c_long%>%
   geom_line() +
   scale_fill_brewer(type = "seq",palette = "Blues")+
   theme_bw()+
-  labs(x = "month", y = "Value", color = "Data Series") +
-  ggtitle("Two Sets of Values on Same Plot")
+  labs(x = "Month", y = "Value", color = "Data Series") +
+  ggtitle("Comparision of Canada and Mexico time series")
 ```
 
 Observing the Figure \@ref(fig:tscompare), it's evident that the seasonal patterns of Mexico and Canada differ significantly. The observed differences in seasonal part between Mexico and Canada border crossings may caused by various factors, including cultural, economic, and climatic influences. The distinct peaks in border crossing values during different months suggest varying trends in travel behavior and trade activities between the two countries. Mexico's peak occurs in November, whereas Canada's peak is in May. This discrepancy could potentially be attributed to weather effects; May might be a comfortable month for people to travel or conduct business through the Canada border, whereas November remains warm along the Mexico border.
 
 
-### Comparison of big event impact 
 ```{r impact911,fig.align='center',out.width="50%", echo=F, message=F, fig.cap= "Impact of the 9/11 event on the Mexico and Canada borders. The darkblue line represents the value of September in the year before the event, while the olivegreen line represents the value of September in the year after the event."}
 # 911
 start_date1 <- ymd("2000-01-01")  # Convert the start date to a Date object
@@ -694,10 +695,10 @@ line1 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(133
 line2 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(10848047,28613279))
 p2 <- p1 + geom_hline(aes(yintercept = wt),line1, color = 'skyblue4')
 p2 + geom_hline(aes(yintercept = wt),line2, color = 'darkolivegreen3')+
-  ggtitle("911")
+  ggtitle("September 11th")
 ```
 
-As observed in the Figure \@ref(fig:impact911), the 9/11 event had a noticeable impact on the value of both borders. There was a significant decline in value on September 11th, 2001, followed by a subsequent recovery the following year.
+Looking into to major events, as observed in the Figure \@ref(fig:impact911), 9/11 had a noticeable impact on the value of both borders. There was a significant decline in value on September 11th, 2001, followed by a subsequent recovery the following year.
 
 ```{r impactcovid,fig.align='center',out.width="50%", echo=F, message=F, fig.cap="The impact of the COVID-19 event on the Mexico and Canada borders. The darkblue line represents the value of March in the year prior to the event, while the olivegreen line represents the value of March in the subsequent year."}
 #covid
@@ -724,14 +725,13 @@ line3 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(709
 line4 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(1818274,16060812))
 p4 <- p3 + geom_hline(aes(yintercept = wt),line3, color = 'skyblue4')
 p4 + geom_hline(aes(yintercept = wt),line4, color = 'darkolivegreen3')+
-  ggtitle("Covid")
+  ggtitle("COVID-19")
 
 ```
 
-From the Figure \@ref(fig:impactcovid), it's evident that COVID-19 had a considerable impact on the values of both borders, notably declining sharply in March 2020. This event not only affected the immediate values but also influenced the seasonal patterns of each border. The values remained consistently low in the subsequent periods following the initial decline.
+From the Figure \@ref(fig:impactcovid), it's evident that COVID-19 had a considerable impact on the values of both borders, notably declining sharply in March 2020. This event not only affected the immediate values but also influenced the seasonal patterns of each border. The values remained consistently low in the subsequent periods following the initial decline.git 
 
 
-### Comparison of object
 
 ```{r include=FALSE}
 Mexico_border_max10 <- Mexico_border %>%
@@ -745,12 +745,13 @@ factor(Mexico_border_max10$Port_name)
 factor(Canada_border_max10$Port_name)
 ```
 
-We selected the Mexico and Canada border data, filtering by the 'Type' attribute equal to 'People.' From this dataset, we identified the top 10 largest values and extracted their corresponding 'Port_name.' The findings revealed that for the Mexico border, the predominant port is El Paso, while for the Canada border, the prominent ports are Buffalo Niagara Falls and Detroit. As these three ports exhibit significant interest, we will conduct further research on them.
+We also compared the temporal trends of both people and objects crossing. First, to focus on people, we selected the Mexico and Canada border data, filtering by the 'Type' attribute equal to 'People.' From the data, we identified the 10 largest values and extracted their corresponding port name. The findings revealed that for the Mexico border, the predominant port is El Paso, while for the Canada border, the prominent ports are Buffalo Niagara Falls and Detroit. As these three ports exhibit significant interest, we will conduct further research on them.
 
 ```{r}
 border1 <- border
 border1$Date <- as.Date(paste0("01 ", border1$Date), format = "%d %b %Y")
 ```
+
 ```{r bar,fig.align='center',out.width="50%", echo=F, message=F, fig.cap="Comparison object"}
 border1 %>%
   filter(Port_name =="El Paso" |Port_name =="Detroit"|Port_name =="Buffalo Niagara Falls")%>%
@@ -762,16 +763,15 @@ border1 %>%
   scale_fill_brewer(palette = "Blues")+
   theme_bw()+
   facet_wrap(~Measure, scales = "free_y")+
-  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) + xlab("Port name") + 
+  ylab("Number of Crossings")
 ```
 
-In Figure \@ref(fig:bar) we compare the three largest ports identified earlier, there are notable differences emerge between Mexico and Canada. It appears that individuals crossing the Mexico border tend to prefer personal vehicles, whereas those crossing the Canada border favor public transportation. Additionally, we observed that the value of empty rail and truck crossings is higher at the Mexico border than at the Canada border, indicating a lower utilization rate of traffic infrastructure in Mexico. Addressing this discrepancy is crucial when considering environmental impact and energy efficiency.
+In Figure \@ref(fig:bar), we compare the object crossings of the three largest ports identified earlier. There are notable differences emerge between Mexico and Canada. It appears that individuals crossing the Mexico border tend to prefer personal vehicles, whereas those crossing the Canada border favor public transportation. Additionally, we observed that the value of empty rail and truck crossings is higher at the Mexico border than at the Canada border, indicating a lower utilization rate of traffic infrastructure in Mexico. Addressing this discrepancy is crucial when considering environmental impact and energy efficiency.
 
 
-# Scepticism
+# Scepticism & questions about the data
 <!-- Critical of findings, and multiple approaches and techniques used to verify unintuitive results. -->
-
-## Questions about the data
 
 According to the Bureau of Transportation Statistics FAQ on border crossing data, there are no passenger trains between Mexico and the United States. For freight trains, crews are changed at the US-Mexico Border. This means there should be no non-zero entries for train passengers in our data. Howwever, there are are 1481 non-zero entries for train passengers, ranging from the years 1996 to 2023 with most of them being in California. This inconsistancy needs to be further investigated. 
 
@@ -803,7 +803,7 @@ border %>% filter(Port_name == "San Ysidro", Value == 0, Measure == "Personal Ve
 ```
 
 
-# Conclusion & Future Work
+# Conclusion & future Work
 <!-- Conclusions follows logically from results and findings. Includes interesting further questions and ideas for future research. -->
 
 Overall, through our analysis we gleamed that the US-Canada appears to be very cyclic, whereas the US-Mexico border appears to be very volatile and possibly subject to international events and some US foreign policy. The time series analysis showcases that major events had different but similar effects on both borders. 
