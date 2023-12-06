@@ -699,7 +699,7 @@ Canada_decomposed_series <- decompose(Canada_time_series, type = "additive")
 Canada_season <- Canada_decomposed_series$seasonal[1:12]
 ```
 - Comparison between the seasonal components of two borders.
-```{r tscompare,fig.align='center', out.width="50%",out.height=240,echo=F, message=F}
+```{r tscompare,fig.align='center', out.width="50%",out.height=240,echo=F, message=F, warning= F}
 year <- 0
 start_date <- as.Date(paste(year, "-01-01", sep = ""))
 end_date <- as.Date(paste(year, "-12-31", sep = ""))
@@ -719,7 +719,7 @@ c_long%>%
 ---
 # Comparison of the big event impact 
 - The impact of the 9/11
-```{r impact911,fig.align='center',out.width="70%",out.height=240, echo=F, message=F}
+```{r impact911,fig.align='center',out.width="70%",out.height=240, echo=F, message=F, warning = F}
 # 911
 start_date1 <- ymd("2000-01-01")  # Convert the start date to a Date object
 end_date1 <- ymd("2003-01-01")    # Convert the end date to a Date object
@@ -805,8 +805,8 @@ p4 + geom_hline(aes(yintercept = wt),line4, color = 'darkolivegreen3')+
   ggtitle("Covid")
 ```
 ---
-# Comparison of object
--Comparison of Buffalo Niagara Falls, Detroit and El Paso
+# Comparison of object crossings
+- Comparison of Buffalo Niagara Falls, Detroit and El Paso
 ```{r bar,fig.align='center',echo=F, message=F}
 border1 <- border
 border1$Date <- as.Date(paste0("01 ", border1$Date), format = "%d %b %Y")

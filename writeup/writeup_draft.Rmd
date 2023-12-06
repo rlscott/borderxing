@@ -590,7 +590,7 @@ Since these ports are so large, it is reasonable to believe they exert a lot of 
 It is also worth noting that there are other smaller ports that exhibit the same phenomenon as El Paso and Calexico. However they are so small that their addition to the list of removed ports barely changes pattern at all. One example of this is port Roma in Texas. This means that using Calexico and El Paso to explain the 9/11 effect should not be treated as comprehensive, but as the dominant locations of the effect.
 
 ## Temporal trends and analysis
-```{r tsMexico,fig.align='center', out.width="40%",echo=F, message=F, fig.cap="Time series data related to the value of Mexico border."}
+```{r tsMexico,fig.align='center', out.width="40%",echo=F, message=F, fig.cap="Time series data related to the value of Mexico border.", warning= FALSE}
 Mexico_value <-border %>%
   filter(Border == "US-Mexico Border")%>%
   filter(Type=="People") %>%
@@ -659,7 +659,7 @@ Canada_season <- Canada_decomposed_series$seasonal[1:12]
 
 Figure \@ref(fig:aggrigate) shows the value of the Canada border and Mexico border vs time. We utilize the 'additive' method to decompose the population data at the Canada border and Mexico border , dividing it into three components: trend, season, and random parts. Our focus for this project lies in analyzing the seasonal component. We are interested in the seasonal part.
 
-```{r tscompare,fig.align='center', out.width="50%",echo=F, message=F, fig.cap="Comparison between the seasonal components of two borders."}
+```{r tscompare,fig.align='center', out.width="50%",echo=F, message=F, fig.cap="Comparison between the seasonal components of two borders.", warning= FALSE}
 year <- 0
 start_date <- as.Date(paste(year, "-01-01", sep = ""))
 end_date <- as.Date(paste(year, "-12-31", sep = ""))
@@ -679,8 +679,7 @@ c_long%>%
 
 Observing the Figure \@ref(fig:tscompare), it's evident that the seasonal patterns of Mexico and Canada differ significantly. The observed differences in seasonal part between Mexico and Canada border crossings may caused by various factors, including cultural, economic, and climatic influences. The distinct peaks in border crossing values during different months suggest varying trends in travel behavior and trade activities between the two countries. Mexico's peak occurs in November, whereas Canada's peak is in May. This discrepancy could potentially be attributed to weather effects; May might be a comfortable month for people to travel or conduct business through the Canada border, whereas November remains warm along the Mexico border.
 
-
-### Comparison of big event impact 
+ 
 ```{r impact911,fig.align='center',out.width="50%", echo=F, message=F, fig.cap= "Impact of the 9/11 event on the Mexico and Canada borders. The darkblue line represents the value of September in the year before the event, while the olivegreen line represents the value of September in the year after the event."}
 # 911
 start_date1 <- ymd("2000-01-01")  # Convert the start date to a Date object
@@ -721,7 +720,7 @@ line1 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(c1,
 line2 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(c2,c4))
 p2 <- p1 + geom_hline(aes(yintercept = wt),line1, color = 'skyblue4')
 p2 + geom_hline(aes(yintercept = wt),line2, color = 'darkolivegreen3')+
-  ggtitle("911")
+  ggtitle("September 11")
 ```
 
 As observed in the Figure \@ref(fig:impact911), the 9/11 event had a noticeable impact on the value of both borders. There was a significant decline in value on September 11th, 2001, followed by a subsequent recovery the following year.
@@ -745,7 +744,7 @@ p3 <- border %>%
   geom_vline(xintercept=2020+(3-1)/12,color='bisque3')+ # covid
   facet_wrap(~Border,scales = "free_y")+
   theme_bw()+
-  xlab("Time")+
+  xlab("Time")+ ylab("Number of Crossings") + 
   theme(legend.position = "none")
 
 Canada2019<-Canada_value %>%
@@ -766,14 +765,12 @@ line3 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(c5,
 line4 <- data.frame(Border = c("US-Canada Border","US-Mexico Border"),wt = c(c6,c8))
 p4 <- p3 + geom_hline(aes(yintercept = wt),line3, color = 'skyblue4')
 p4 + geom_hline(aes(yintercept = wt),line4, color = 'darkolivegreen3')+
-  ggtitle("Covid")
+  ggtitle("COVID-19")
 
 ```
 
 From the Figure \@ref(fig:impactcovid), it's evident that COVID-19 had a considerable impact on the values of both borders, notably declining sharply in March 2020. This event not only affected the immediate values but also influenced the seasonal patterns of each border. The values remained consistently low in the subsequent periods following the initial decline.
 
-
-### Comparison of object
 
 ```{r include=FALSE}
 Mexico_border <- border %>%
@@ -810,8 +807,8 @@ border1 %>%
   ggplot(aes(x = factor(Port_name),y = Value))+
   geom_bar(stat = "identity",position = position_dodge(),color = "skyblue3",fill = "skyblue3") +
   scale_fill_brewer(palette = "Blues")+
-  theme_bw()+
-  facet_wrap(~Measure, scales = "free_y")+
+  theme_bw()+ ylab("Number of Crossings") + xlab("Port name") + 
+  facet_wrap(~Measure, scales = "free_y") +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
 ```
 
@@ -850,7 +847,7 @@ border %>% filter(Port_name == "San Ysidro", Value == 0, Measure == "Personal Ve
 ```
 
 
-# Conclusion & future Work
+# Conclusion & future work
 <!-- Conclusions follows logically from results and findings. Includes interesting further questions and ideas for future research. -->
 
 Overall, through our analysis we gleamed that the US-Canada appears to be very cyclic, whereas the US-Mexico border appears to be very volatile and possibly subject to international events and some US foreign policy. The time series analysis showcases that major events had different but similar effects on both borders. 
