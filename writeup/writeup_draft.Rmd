@@ -626,7 +626,7 @@ a$month1 <- as.Date(a$month1)
 
 Figure \@ref(fig:tsMexico) shows the number of crossings on the Mexico border over time. We utilize the 'additive' method to decompose the population data at the Mexico border, dividing it into three components: trend, season, and random parts. Our focus for this project lies in analyzing the seasonal component.
 
-```{r tsCanada,fig.align='center',out.width="40%", echo=F, message=F, fig.cap="Time series data related to the value of Canada border."}
+```{r tsCanada,fig.align='center',out.width="40%", echo=F, message=F, fig.cap="Time series data related to the value of US-Canada border."}
 Canada_value <- Canada_border %>%
   filter(Type == "People")%>%
   group_by(Month,Year)%>%
@@ -752,7 +752,7 @@ border1 <- border
 border1$Date <- as.Date(paste0("01 ", border1$Date), format = "%d %b %Y")
 ```
 
-```{r bar,fig.align='center',out.width="50%", echo=F, message=F, fig.cap="Comparison object"}
+```{r bar,fig.align='center',out.width="50%", echo=F, message=F, fig.cap="Comparison of object crossings"}
 border1 %>%
   filter(Port_name =="El Paso" |Port_name =="Detroit"|Port_name =="Buffalo Niagara Falls")%>%
   filter(Type == "Object")%>%
