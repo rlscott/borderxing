@@ -67,7 +67,7 @@ DT::datatable(
 # Curiosity 
 <!-- Intense exploration and evidence of many trials and failures. Presents best ideas, rather than all ideas. Additional research from other sources used to help understand/explain findings. -->
 
-## General exporation on all ports of entry
+## General Exporation on All Ports of Entry
 
 With the dplyr package, we found 118 unique ports of entry in our data. 90 of these ports are on the US-Canada border, and 28 of these ports are on the US-Mexico Border. 
 
@@ -229,7 +229,7 @@ Figure \@ref(fig:dist-fig) shocases the multinational distributions for each por
 
 
 
-## Anomalies in the US-Canada ports of entry
+## Anomalies in the US-Canada Ports of Entry
 
 ```{r,echo=FALSE, message = FALSE, warning = FALSE}
 Canada_border <- border %>%
@@ -794,7 +794,7 @@ factor(Canada_border_max10$Port_name)
 ```
 
 
-# Analyseing the Types of Crossings for the Largest Ports
+# Analyzing the Types of Crossings for the Largest Ports
 
 We selected the Mexico and Canada border data, filtering by the 'Type' attribute equal to 'People.' From this dataset, we identified the top 10 largest values and extracted their corresponding 'Port_name.' The findings revealed that for the Mexico border, the predominant port is El Paso, while for the Canada border, the prominent ports are Buffalo Niagara Falls and Detroit. As these three ports exhibit significant interest, we will conduct further research on them.
 
@@ -818,7 +818,7 @@ border1 %>%
 
 In Figure \@ref(fig:bar) we compare the three largest ports identified earlier, there are notable differences emerge between Mexico and Canada. It appears that individuals crossing the Mexico border tend to prefer personal vehicles, whereas those crossing the Canada border favor public transportation. Additionally, we observed that the value of empty rail and truck crossings is higher at the Mexico border than at the Canada border, indicating a lower utilization rate of traffic infrastructure in Mexico. Addressing this discrepancy is crucial when considering environmental impact and energy efficiency.
 
-# Scepticism & questions about the data
+# Scepticism & Questions About the Data
 <!-- Critical of findings, and multiple approaches and techniques used to verify unintuitive results. -->
 
 According to the Bureau of Transportation Statistics FAQ on border crossing data, there are no passenger trains between Mexico and the United States. For freight trains, crews are changed at the US-Mexico Border. This means there should be no non-zero entries for train passengers in our data. Howwever, there are are 1481 non-zero entries for train passengers, ranging from the years 1996 to 2023 with most of them being in California. This inconsistancy needs to be further investigated. 
@@ -851,7 +851,7 @@ border %>% filter(Port_name == "San Ysidro", Value == 0, Measure == "Personal Ve
 ```
 
 
-# Conclusion & future work
+# Conclusion & Future Work
 <!-- Conclusions follows logically from results and findings. Includes interesting further questions and ideas for future research. -->
 
 Overall, through our analysis we gleamed that the US-Canada appears to be very cyclic, whereas the US-Mexico border appears to be very volatile and possibly subject to international events and some US foreign policy. The time series analysis showcases that major events had different but similar effects on both borders. 
