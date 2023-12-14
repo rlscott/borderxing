@@ -3,7 +3,7 @@ library(lubridate)
 library(leaflet)
 library(plotly)
 
-# border <- read.csv("https://data.bts.gov/api/views/keg4-3bc2/rows.csv?accessType=DOWNLOAD",stringsAsFactors = T)
+border <- read.csv("https://data.bts.gov/api/views/keg4-3bc2/rows.csv?accessType=DOWNLOAD",stringsAsFactors = T)
 # border <- read.csv("~/Border_Crossing_Entry_Data.csv", stringsAsFactors=TRUE)
 load("data/border_clean.Rdata")
 
@@ -71,6 +71,11 @@ border %>%
   geom_vline(xintercept=2011+(11-1)/12,color='red')+ # Guatemala President
   geom_vline(xintercept=2017+(1-1)/12,color='red')+ # Trump
   geom_vline(xintercept=2020+(3-1)/12,color='red')+ # Covid
+  geom_hline(yintercept=7981409)+
+  geom_hline(yintercept=6211591)+
+  geom_hline(yintercept=24197364)+
+  geom_hline(yintercept=21103353)+
+  
   facet_wrap(~Border)+
   theme(legend.position = "none")
 summary(my(border$Date))
@@ -193,4 +198,36 @@ lin<-lm(Value~long,data=reg)
 adjlin<-lm(Value~long,data=filter(reg,State!='California'))
 summary(lin)
 summary(adjlin)
+
+# Fixing
+
+d<-border %>%
+  filter(Type=="People",Border=="US-Mexico Border") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value)) %>% ungroup()
+
+p<-border %>%
+  filter(Type=="People",Border=="US-Canada Border") %>%
+  mutate(date=lubridate::my(Date),
+         month=month(date),
+         year=year(date)) %>%
+  group_by(month,year,Border) %>%
+  summarize(Value=sum(Value)) %>% ungroup()
+
+mean(d$Value[d$year==2000])
+mean(d$Value[d$year==2002])
+t.test(d$Value[d$year==2000],d$Value[d$year==2002])
+hist(d$Value[d$year==2002])
+shapiro.test(d$Value[d$year==2002])
+wilcox.test(d$Value[d$year==2000],d$Value[d$year==2002])
+
+mean(p$Value[p$year==2000])
+mean(p$Value[p$year==2002])
+t.test(p$Value[p$year==2000],p$Value[p$year==2002])
+hist(p$Value[p$year==2002])
+shapiro.test(p$Value[p$year==2002])
+wilcox.test(p$Value[p$year==2000],p$Value[p$year==2002])
 
